@@ -11,10 +11,12 @@ group :maintenance, optional: true do
 	gem "bake-modernize"
 	gem "bake-gem"
 	
-	gem "utopia-project"
+	gem "utopia-project" #, path: "../utopia-project"
 end
 
 group :test do
 	gem "bake-test"
 	gem "bake-test-external"
 end
+
+# gem "decode", path: "../../ioquatix/decode"
