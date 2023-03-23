@@ -4,6 +4,10 @@ Provides a separation of concerns interface for IO endpoints. This allows you to
 
 [![Development Status](https://github.com/socketry/io-endpoint/workflows/Test/badge.svg)](https://github.com/socketry/io-endpoint/actions?workflow=Test)
 
+## Usage
+
+Please see the [documentation](https://socketry.github.io/io-endpoint) for more information.
+
 ## Contributing
 
 We welcome contributions to this project.

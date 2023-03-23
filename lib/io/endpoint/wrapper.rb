@@ -9,6 +9,16 @@ module IO::Endpoint
 	module Wrapper
 		include Socket::Constants
 		
+		if $stdin.respond_to?(:timeout=)
+			def self.set_timeout(io, timeout)
+				io.timeout = timeout
+			end
+		else
+			def self.set_timeout(io, timeout)
+				warn "IO#timeout= not supported on this platform."
+			end
+		end
+		
 		# Build and wrap the underlying io.
 		# @option reuse_port [Boolean] Allow this port to be bound in multiple processes.
 		# @option reuse_address [Boolean] Allow this port to be bound in multiple processes.
@@ -16,7 +26,9 @@ module IO::Endpoint
 			socket = Socket.new(*arguments)
 			
 			# Set the timeout:
-			socket.timeout = timeout
+			if timeout
+				set_timeout(socket, timeout)
+			end
 			
 			if reuse_address
 				socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
