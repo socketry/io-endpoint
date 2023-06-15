@@ -6,8 +6,8 @@
 require 'socket'
 
 module IO::Endpoint
-	module Wrapper
-		include Socket::Constants
+	class Wrapper
+		include ::Socket::Constants
 		
 		if $stdin.respond_to?(:timeout=)
 			def self.set_timeout(io, timeout)
@@ -19,11 +19,15 @@ module IO::Endpoint
 			end
 		end
 		
+		def async
+			raise NotImplementedError
+		end
+		
 		# Build and wrap the underlying io.
 		# @option reuse_port [Boolean] Allow this port to be bound in multiple processes.
 		# @option reuse_address [Boolean] Allow this port to be bound in multiple processes.
-		def self.build(*arguments, timeout: nil, reuse_address: true, reuse_port: nil, linger: nil)
-			socket = Socket.new(*arguments)
+		def build(*arguments, timeout: nil, reuse_address: true, reuse_port: nil, linger: nil)
+			socket = ::Socket.new(*arguments)
 			
 			# Set the timeout:
 			if timeout
@@ -54,7 +58,7 @@ module IO::Endpoint
 		#  socket = Async::IO::Socket.connect(Async::IO::Address.tcp("8.8.8.8", 53))
 		# @param remote_address [Address] The remote address to connect to.
 		# @option local_address [Address] The local address to bind to before connecting.
-		def self.connect(remote_address, local_address: nil, **options)
+		def connect(remote_address, local_address: nil, **options)
 			socket = build(remote_address.afamily, remote_address.socktype, remote_address.protocol, **options) do |socket|
 				if local_address
 					if defined?(IP_BIND_ADDRESS_NO_PORT)
@@ -87,31 +91,53 @@ module IO::Endpoint
 		#  socket = Async::IO::Socket.bind(Async::IO::Address.tcp("0.0.0.0", 9090))
 		# @param local_address [Address] The local address to bind to.
 		# @option protocol [Integer] The socket protocol to use.
-		def self.bind(local_address, protocol: 0, **options, &block)
+		def bind(local_address, protocol: 0, **options, &block)
 			socket = build(local_address.afamily, local_address.socktype, protocol, **options) do |socket|
 				socket.bind(local_address.to_sockaddr)
 			end
 			
 			return socket unless block_given?
 			
-			begin
-				yield socket
-			ensure
-				socket.close
+			async do
+				begin
+					yield socket
+				ensure
+					socket.close
+				end
 			end
 		end
 		
 		# Bind to a local address and accept connections in a loop.
-		def self.accept(*arguments, backlog: SOMAXCONN, **options, &block)
+		def accept(*arguments, backlog: SOMAXCONN, **options, &block)
 			bind(*arguments, **options) do |server|
 				server.listen(backlog) if backlog
 				
-				Fiber.schedule do
+				async do
 					while true
 						server.accept(&block)
 					end
 				end
 			end
+		end
+	end
+	
+	class ThreadWrapper < Wrapper
+		def async(&block)
+			Thread.new(&block)
+		end
+	end
+	
+	class FiberWrapper < Wrapper
+		def async(&block)
+			Fiber.schedule(&block)
+		end
+	end
+	
+	def Wrapper.default
+		if Fiber.scheduler
+			FiberWrapper.new
+		else
+			ThreadWrapper.new
 		end
 	end
 end

@@ -69,17 +69,15 @@ module IO::Endpoint
 		
 		# Accept connections from the specified endpoint.
 		# @param backlog [Integer] the number of connections to listen for.
-		def accept(backlog = Socket::SOMAXCONN, &block)
+		def accept(backlog: Socket::SOMAXCONN, &block)
 			bind do |server|
-				Fiber.schedule do
-					server.listen(backlog) if backlog
+				server.listen(backlog) if backlog
+				
+				while true
+					socket, address = server.accept
 					
-					while true
-						socket, address = server.accept
-						
-						Fiber.schedule do
-							yield accepted(socket), address
-						end
+					Fiber.schedule do
+						yield accepted(socket), address
 					end
 				end
 			end
