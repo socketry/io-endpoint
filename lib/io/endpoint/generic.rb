@@ -95,9 +95,10 @@ module IO::Endpoint
 				yield wrapper
 			end
 			
+			success = true
 			return wrappers
 		ensure
-			wrappers.each(&:close) if $!
+			wrappers.each(&:close) unless success
 		end
 		
 		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.

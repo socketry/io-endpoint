@@ -9,12 +9,12 @@ module IO::Endpoint
 	class Wrapper
 		include ::Socket::Constants
 		
-		if $stdin.respond_to?(:timeout=)
-			def self.set_timeout(io, timeout)
+		if IO.method_defined?(:timeout=)
+			def set_timeout(io, timeout)
 				io.timeout = timeout
 			end
 		else
-			def self.set_timeout(io, timeout)
+			def set_timeout(io, timeout)
 				warn "IO#timeout= not supported on this platform."
 			end
 		end
@@ -51,6 +51,7 @@ module IO::Endpoint
 			return socket
 		rescue
 			socket&.close
+			raise
 		end
 		
 		# Establish a connection to a given `remote_address`.

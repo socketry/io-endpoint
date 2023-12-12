@@ -71,23 +71,23 @@ module IO::Endpoint
 		end
 	end
 	
-	# @param args nodename, service, family, socktype, protocol, flags. `socktype` will be set to Socket::SOCK_STREAM.
+	# @param arguments nodename, service, family, socktype, protocol, flags. `socktype` will be set to Socket::SOCK_STREAM.
 	# @param options keyword arguments passed on to {HostEndpoint#initialize}
 	#
 	# @return [HostEndpoint]
-	def self.tcp(*args, **options)
-		args[3] = ::Socket::SOCK_STREAM
+	def self.tcp(*arguments, **options)
+		arguments[3] = ::Socket::SOCK_STREAM
 		
-		HostEndpoint.new(args, **options)
+		HostEndpoint.new(arguments, **options)
 	end
 
-	# @param args nodename, service, family, socktype, protocol, flags. `socktype` will be set to Socket::SOCK_DGRAM.
+	# @param arguments nodename, service, family, socktype, protocol, flags. `socktype` will be set to Socket::SOCK_DGRAM.
 	# @param options keyword arguments passed on to {HostEndpoint#initialize}
 	#
 	# @return [HostEndpoint]
-	def self.udp(*args, **options)
-		args[3] = ::Socket::SOCK_DGRAM
+	def self.udp(*arguments, **options)
+		arguments[3] = ::Socket::SOCK_DGRAM
 		
-		HostEndpoint.new(args, **options)
+		HostEndpoint.new(arguments, **options)
 	end
 end

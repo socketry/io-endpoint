@@ -34,9 +34,7 @@ module IO::Endpoint
 		end
 	end
 	
-	class Endpoint
-		def self.composite(*endpoints, **options)
-			CompositeEndpoint.new(endpoints, **options)
-		end
+	def self.composite(*endpoints, **options)
+		CompositeEndpoint.new(endpoints, **options)
 	end
 end

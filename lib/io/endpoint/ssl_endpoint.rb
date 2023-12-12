@@ -111,13 +111,13 @@ module IO::Endpoint
 		end
 	end
 
-	# @param args
+	# @param arguments
 	# @param ssl_context [OpenSSL::SSL::SSLContext, nil]
 	# @param hostname [String, nil]
 	# @param options keyword arguments passed through to {Endpoint.tcp}
 	#
 	# @return [SSLEndpoint]
-	def self.ssl(*args, ssl_context: nil, hostname: nil, **options)
-		SSLEndpoint.new(self.tcp(*args, **options), ssl_context: ssl_context, hostname: hostname)
+	def self.ssl(*arguments, ssl_context: nil, hostname: nil, **options)
+		SSLEndpoint.new(self.tcp(*arguments, **options), ssl_context: ssl_context, hostname: hostname)
 	end
 end

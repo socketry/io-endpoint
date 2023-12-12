@@ -92,7 +92,7 @@ module IO::Endpoint
 		
 		def accept(backlog = nil, &block)
 			bind do |server|
-				server.accept_each(&block)
+				server.accept(&block)
 			end
 		end
 		
