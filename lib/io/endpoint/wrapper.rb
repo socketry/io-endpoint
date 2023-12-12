@@ -19,6 +19,22 @@ module IO::Endpoint
 			end
 		end
 		
+		def set_buffered(socket, buffered)
+			case buffered
+			when true
+				socket.setsockopt(IPPROTO_TCP, TCP_NODELAY, 0)
+			when false
+				socket.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
+			end
+		rescue Errno::EINVAL
+			# On Darwin, sometimes occurs when the connection is not yet fully formed. Empirically, TCP_NODELAY is enabled despite this result.
+		rescue Errno::EOPNOTSUPP
+			# Some platforms may simply not support the operation.
+			# Console.logger.warn(self) {"Unable to set sync=#{value}!"}
+		rescue Errno::ENOPROTOOPT
+			# It may not be supported by the protocol (e.g. UDP). ¯\_(ツ)_/¯
+		end
+		
 		def async
 			raise NotImplementedError
 		end
@@ -26,7 +42,9 @@ module IO::Endpoint
 		# Build and wrap the underlying io.
 		# @option reuse_port [Boolean] Allow this port to be bound in multiple processes.
 		# @option reuse_address [Boolean] Allow this port to be bound in multiple processes.
-		def build(*arguments, timeout: nil, reuse_address: true, reuse_port: nil, linger: nil)
+		# @option linger [Boolean] Wait for data to be sent before closing the socket.
+		# @option buffered [Boolean] Enable or disable Nagle's algorithm for TCP sockets.
+		def build(*arguments, timeout: nil, reuse_address: true, reuse_port: nil, linger: nil, buffered: false)
 			socket = ::Socket.new(*arguments)
 			
 			# Set the timeout:
@@ -43,7 +61,11 @@ module IO::Endpoint
 			end
 			
 			if linger
-				socket.setsockopt(SOL_SOCKET, SO_LINGER, linger)
+				socket.setsockopt(SOL_SOCKET, SO_LINGER, 1)
+			end
+			
+			if buffered == false
+				set_buffered(socket, buffered)
 			end
 			
 			yield socket if block_given?
