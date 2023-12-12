@@ -13,6 +13,8 @@ describe IO::Endpoint::UNIXEndpoint do
 	let(:endpoint) {subject.new(path)}
 	
 	it "can bind to address" do
+		expect(endpoint).not.to be(:bound?)
+		
 		endpoint.bind do |socket|
 			expect(socket).to be_a(Socket)
 		end
@@ -25,9 +27,15 @@ describe IO::Endpoint::UNIXEndpoint do
 		server.listen(1)
 		
 		thread = Thread.new do
-			peer, address = server.accept
-			peer.close
+			while true
+				peer, address = server.accept
+				peer.close
+			end
+		ensure
+			server&.close
 		end
+		
+		expect(endpoint).to be(:bound?)
 		
 		endpoint.connect do |socket|
 			expect(socket).to be_a(Socket)
@@ -38,7 +46,17 @@ describe IO::Endpoint::UNIXEndpoint do
 			socket.close
 		end
 	ensure
-		server&.close
-		thread&.join
+		thread&.kill
+	end
+end
+
+describe IO::Endpoint do
+	let(:endpoint) {subject.unix("/tmp/test.ipc")}
+	
+	with '.unix' do
+		it "can construct endpoint from path" do
+			expect(endpoint).to be_a(IO::Endpoint::UNIXEndpoint)
+			expect(endpoint).to have_attributes(path: be == "/tmp/test.ipc")
+		end
 	end
 end

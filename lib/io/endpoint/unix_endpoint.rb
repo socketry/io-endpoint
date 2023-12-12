@@ -27,6 +27,8 @@ module IO::Endpoint
 			end
 		rescue Errno::ECONNREFUSED
 			return false
+		rescue Errno::ENOENT
+			return false
 		end
 		
 		def bind(&block)

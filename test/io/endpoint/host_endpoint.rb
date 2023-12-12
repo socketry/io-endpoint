@@ -40,3 +40,14 @@ describe IO::Endpoint::AddressEndpoint do
 		thread&.join
 	end
 end
+
+describe IO::Endpoint do
+	with '.udp' do
+		let(:endpoint) {subject.udp("localhost", 0)}
+		
+		it "can construct endpoint from path" do
+			expect(endpoint).to be_a(IO::Endpoint::HostEndpoint)
+			expect(endpoint).to have_attributes(specification: be == ["localhost", 0, nil, ::Socket::SOCK_DGRAM])
+		end
+	end
+end
