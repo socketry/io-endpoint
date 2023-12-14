@@ -39,4 +39,10 @@ describe IO::Endpoint::AddressEndpoint do
 		server&.close
 		thread&.join
 	end
+	
+	with "#to_s" do
+		it "can generate a string representation" do
+			expect(endpoint.to_s).to be =~ /#<IO::Endpoint::AddressEndpoint address=/
+		end
+	end
 end

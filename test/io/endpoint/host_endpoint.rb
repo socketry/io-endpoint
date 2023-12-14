@@ -3,12 +3,11 @@
 # Released under the MIT License.
 # Copyright, 2023, by Samuel Williams.
 
-require 'io/endpoint/address_endpoint'
+require 'io/endpoint/host_endpoint'
 
-describe IO::Endpoint::AddressEndpoint do
-	let(:options) {Hash.new}
-	let(:address) {Addrinfo.tcp('localhost', 0)}
-	let(:endpoint) {subject.new(address)}
+describe IO::Endpoint::HostEndpoint do
+	let(:specification) {["localhost", 0, nil, ::Socket::SOCK_STREAM]}
+	let(:endpoint) {subject.new(specification)}
 	
 	it "can bind to address" do
 		endpoint.bind do |socket|
@@ -17,27 +16,32 @@ describe IO::Endpoint::AddressEndpoint do
 	end
 	
 	it "can connect to address" do
-		server = endpoint.bind
-		expect(server).to be_a(Socket)
+		bound = endpoint.bound
 		
-		server.listen(1)
-		
-		thread = Thread.new do
+		bound.bind do |server|
+			expect(server).to be_a(Socket)
+			
 			peer, address = server.accept
 			peer.close
 		end
 		
-		subject.new(server.local_address).connect do |socket|
-			expect(socket).to be_a(Socket)
+		bound.each do |server|
+			server_endpoint = IO::Endpointserver.local_address)
+			expect(client).to be_a(Socket)
 			
 			# Wait for the connection to be closed.
-			socket.wait_readable
+			client.wait_readable
 			
-			socket.close
+			client.close
 		end
 	ensure
-		server&.close
-		thread&.join
+		bound&.close
+	end
+	
+	with "#to_s" do
+		it "can generate a string representation" do
+			expect(endpoint.to_s).to be == "#<IO::Endpoint::HostEndpoint name=\"localhost\" service=0 family=nil type=1 protocol=nil flags=nil>"
+		end
 	end
 end
 
@@ -48,6 +52,15 @@ describe IO::Endpoint do
 		it "can construct endpoint from path" do
 			expect(endpoint).to be_a(IO::Endpoint::HostEndpoint)
 			expect(endpoint).to have_attributes(specification: be == ["localhost", 0, nil, ::Socket::SOCK_DGRAM])
+		end
+	end
+	
+	with '.tcp' do
+		let(:endpoint) {subject.tcp("localhost", 0)}
+		
+		it "can construct endpoint from path" do
+			expect(endpoint).to be_a(IO::Endpoint::HostEndpoint)
+			expect(endpoint).to have_attributes(specification: be == ["localhost", 0, nil, ::Socket::SOCK_STREAM])
 		end
 	end
 end
