@@ -5,6 +5,7 @@
 
 require_relative 'generic'
 require_relative 'composite_endpoint'
+require_relative 'socket_endpoint'
 
 module IO::Endpoint
 	# Pre-connect and pre-bind sockets so that it can be used between processes.
@@ -74,31 +75,47 @@ module IO::Endpoint
 			@sockets.clear
 		end
 		
-		def bind
-			@sockets.each do |server|
+		def each(&block)
+			return to_enum unless block_given?
+			
+			@sockets.each do |socket|
+				yield SocketEndpoint.new(socket.dup)
+			end
+		end
+		
+		def bind(wrapper = Wrapper.default, &block)
+			@sockets.each.map do |server|
 				server = server.dup
 				
-				begin
-					yield server
-				ensure
-					server.close
+				if block_given?
+					wrapper.async do
+						begin
+							yield server
+						ensure
+							server.close
+						end
+					end
+				else
+					server
 				end
 			end
 		end
 		
-		def connect
-			@sockets.each do |peer|
-				peer = peer.dup
+		def connect(wrapper = Wrapper.default, &block)
+			@sockets.each do |socket|
+				socket = socket.dup
+				
+				return socket unless block_given?
 				
 				begin
-					yield peer
+					return yield(socket)
 				ensure
-					peer.close
+					socket.close
 				end
 			end
 		end
 		
-		def accept(backlog = nil, &block)
+		def accept(**options, &block)
 			bind do |server|
 				server.accept(&block)
 			end

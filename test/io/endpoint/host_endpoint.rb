@@ -25,8 +25,10 @@ describe IO::Endpoint::HostEndpoint do
 			peer.close
 		end
 		
-		bound.each do |server|
-			server_endpoint = IO::Endpointserver.local_address)
+		bound.sockets.each do |server|
+			server_endpoint = IO::Endpoint::AddressEndpoint.new(server.local_address)
+			
+			client = server_endpoint.connect
 			expect(client).to be_a(Socket)
 			
 			# Wait for the connection to be closed.
