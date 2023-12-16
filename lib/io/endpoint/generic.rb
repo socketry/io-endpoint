@@ -83,24 +83,6 @@ module IO::Endpoint
 			end
 		end
 		
-		# Map all endpoints by invoking `#bind`.
-		# @yield the bound wrapper.
-		def bound
-			wrappers = []
-			
-			self.each do |endpoint|
-				wrapper = endpoint.bind
-				wrappers << wrapper
-				
-				yield wrapper
-			end
-			
-			success = true
-			return wrappers
-		ensure
-			wrappers.each(&:close) unless success
-		end
-		
 		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.
 		#
 		# @param string [String] URI as string. Scheme will decide implementation used.

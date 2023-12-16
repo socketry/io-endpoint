@@ -30,13 +30,14 @@ module IO::Endpoint
 		# @yield [Socket] the socket which is being connected, may be invoked more than once
 		# @return [Socket] the connected socket
 		# @raise if no connection could complete successfully
-		def connect
+		def connect(wrapper = Wrapper.default, &block)
 			last_error = nil
 			
 			Addrinfo.foreach(*@specification) do |address|
 				begin
-					socket = Socket.connect(address, **@options)
+					socket = wrapper.connect(@address, **@options)
 				rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, Errno::EAGAIN => last_error
+					# Try again unless if possible, otherwise raise...
 				else
 					return socket unless block_given?
 					
@@ -54,9 +55,9 @@ module IO::Endpoint
 		# Invokes the given block for every address which can be bound to.
 		# @yield [Socket] the bound socket
 		# @return [Array<Socket>] an array of bound sockets
-		def bind(&block)
+		def bind(wrapper = Wrapper.default, &block)
 			Addrinfo.foreach(*@specification).map do |address|
-				Socket.bind(address, **@options, &block)
+				wrapper.bind(address, **@options, &block)
 			end
 		end
 		

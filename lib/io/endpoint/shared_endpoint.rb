@@ -5,13 +5,18 @@
 
 require_relative 'generic'
 require_relative 'composite_endpoint'
+require_relative 'socket_endpoint'
 
 module IO::Endpoint
 	# Pre-connect and pre-bind sockets so that it can be used between processes.
 	class SharedEndpoint < Generic
 		# Create a new `SharedEndpoint` by binding to the given endpoint.
-		def self.bound(endpoint, backlog: Socket::SOMAXCONN, close_on_exec: false)
-			wrappers = endpoint.bound do |server|
+		def self.bound(endpoint, backlog: Socket::SOMAXCONN, close_on_exec: false, **options)
+			sockets = []
+			
+			endpoint.each do |server_endpoint|
+				server = server_endpoint.bind(**options)
+				
 				# This is somewhat optional. We want to have a generic interface as much as possible so that users of this interface can just call it without knowing a lot of internal details. Therefore, we ignore errors here if it's because the underlying socket does not support the operation.
 				begin
 					server.listen(backlog)
@@ -20,9 +25,11 @@ module IO::Endpoint
 				end
 				
 				server.close_on_exec = close_on_exec
+				
+				sockets << server
 			end
 			
-			return self.new(endpoint, wrappers)
+			return self.new(endpoint, sockets)
 		end
 		
 		# Create a new `SharedEndpoint` by connecting to the given endpoint.
@@ -34,18 +41,20 @@ module IO::Endpoint
 			return self.new(endpoint, [wrapper])
 		end
 		
-		def initialize(endpoint, wrappers, **options)
+		def initialize(endpoint, sockets, **options)
 			super(**options)
 			
+			raise TypeError, "sockets must be an Array" unless sockets.is_a?(Array)
+			
 			@endpoint = endpoint
-			@wrappers = wrappers
+			@sockets = sockets
 		end
 		
 		attr :endpoint
-		attr :wrappers
+		attr :sockets
 		
 		def local_address_endpoint(**options)
-			endpoints = @wrappers.map do |wrapper|
+			endpoints = @sockets.map do |wrapper|
 				AddressEndpoint.new(wrapper.to_io.local_address)
 			end
 			
@@ -53,51 +62,77 @@ module IO::Endpoint
 		end
 		
 		def remote_address_endpoint(**options)
-			endpoints = @wrappers.map do |wrapper|
+			endpoints = @sockets.map do |wrapper|
 				AddressEndpoint.new(wrapper.to_io.remote_address)
 			end
 			
 			return CompositeEndpoint.new(endpoints, **options)
 		end
 		
-		# Close all the internal wrappers.
+		# Close all the internal sockets.
 		def close
-			@wrappers.each(&:close)
-			@wrappers.clear
+			@sockets.each(&:close)
+			@sockets.clear
 		end
 		
-		def bind
-			@wrappers.each do |server|
+		def each(&block)
+			return to_enum unless block_given?
+			
+			@sockets.each do |socket|
+				yield SocketEndpoint.new(socket.dup)
+			end
+		end
+		
+		def bind(wrapper = Wrapper.default, &block)
+			@sockets.each.map do |server|
 				server = server.dup
 				
-				begin
-					yield server
-				ensure
-					server.close
+				if block_given?
+					wrapper.async do
+						begin
+							yield server
+						ensure
+							server.close
+						end
+					end
+				else
+					server
 				end
 			end
 		end
 		
-		def connect
-			@wrappers.each do |peer|
-				peer = peer.dup
+		def connect(wrapper = Wrapper.default, &block)
+			@sockets.each do |socket|
+				socket = socket.dup
+				
+				return socket unless block_given?
 				
 				begin
-					yield peer
+					return yield(socket)
 				ensure
-					peer.close
+					socket.close
 				end
 			end
 		end
 		
-		def accept(backlog = nil, &block)
+		def accept(**options, &block)
 			bind do |server|
 				server.accept(&block)
 			end
 		end
 		
 		def to_s
-			"\#<#{self.class} #{@wrappers.size} descriptors for #{@endpoint}>"
+			"\#<#{self.class} #{@sockets.size} descriptors for #{@endpoint}>"
+		end
+	end
+	
+	class Generic
+		def bound(**options)
+			SharedEndpoint.bound(self, **options)
+		end
+		
+		def connected(**options)
+			SharedEndpoint.connected(self, **options)
 		end
 	end
 end

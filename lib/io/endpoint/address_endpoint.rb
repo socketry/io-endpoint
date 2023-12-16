@@ -17,7 +17,7 @@ module IO::Endpoint
 		end
 		
 		def to_s
-			"\#<#{self.class} #{@address.inspect}>"
+			"\#<#{self.class} address=#{@address.inspect}>"
 		end
 		
 		attr :address
