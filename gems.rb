@@ -7,6 +7,8 @@ source 'https://rubygems.org'
 
 gemspec
 
+# gem "decode", path: "../../ioquatix/decode"
+
 group :maintenance, optional: true do
 	gem "bake-modernize"
 	gem "bake-gem"
@@ -15,8 +17,10 @@ group :maintenance, optional: true do
 end
 
 group :test do
+	gem "bake"
+	gem "covered"
+	gem "sus"
+	
 	gem "bake-test"
 	gem "bake-test-external"
 end
-
-# gem "decode", path: "../../ioquatix/decode"
