@@ -36,7 +36,7 @@ describe IO::Endpoint::SSLEndpoint do
 			expect(client).to be_a(::OpenSSL::SSL::SSLSocket)
 			
 			# Wait for the connection to be closed.
-			client.to_io.wait_readable
+			client.wait_readable
 			
 			client.close
 		end

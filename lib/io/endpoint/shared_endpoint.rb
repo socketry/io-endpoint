@@ -9,16 +9,6 @@ require_relative 'socket_endpoint'
 
 require 'openssl'
 
-class OpenSSL::SSL::SSLServer
-	def close_on_exec=(value)
-		to_io.close_on_exec = value
-	end
-	
-	def local_address
-		to_io.local_address
-	end
-end
-
 module IO::Endpoint
 	# Pre-connect and pre-bind sockets so that it can be used between processes.
 	class SharedEndpoint < Generic
