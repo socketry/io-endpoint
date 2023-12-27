@@ -23,7 +23,9 @@ describe IO::Endpoint::SocketEndpoint do
 	end
 	
 	it "can connect to address" do
-		server = internal_endpoint.bind
+		sockets = internal_endpoint.bind
+		server = sockets.first
+		
 		expect(server).to be_a(Socket)
 		
 		server.listen(1)

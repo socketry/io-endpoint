@@ -23,10 +23,11 @@ module IO::Endpoint
 		attr :address
 		
 		# Bind a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
-		# @yield [Socket] the bound socket
-		# @return [Socket] the bound socket
+		# @yield {|socket| ...}	An optional block which will be passed the socket.
+		#   @parameter socket [Socket] The socket which has been bound.
+		# @return [Array(Socket)] the bound socket
 		def bind(wrapper = Wrapper.default, &block)
-			wrapper.bind(@address, **@options, &block)
+			[wrapper.bind(@address, **@options, &block)]
 		end
 		
 		# Connects a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.

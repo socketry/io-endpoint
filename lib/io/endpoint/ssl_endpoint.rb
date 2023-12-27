@@ -41,7 +41,7 @@ module IO::Endpoint
 			@options[:ssl_params]
 		end
 		
-		def build_context(context = OpenSSL::SSL::SSLContext.new)
+		def build_context(context = ::OpenSSL::SSL::SSLContext.new)
 			if params = self.params
 				context.set_params(params)
 			end
@@ -62,10 +62,12 @@ module IO::Endpoint
 		def bind
 			if block_given?
 				@endpoint.bind do |server|
-					yield OpenSSL::SSL::SSLServer.new(server, context)
+					yield ::OpenSSL::SSL::SSLServer.new(server, context)
 				end
 			else
-				return OpenSSL::SSL::SSLServer.new(@endpoint.bind, context)
+				@endpoint.bind.map do |server|
+					::OpenSSL::SSL::SSLServer.new(server, context)
+				end
 			end
 		end
 		
@@ -73,7 +75,7 @@ module IO::Endpoint
 		# @yield [Socket] the socket which is being connected
 		# @return [Socket] the connected socket
 		def connect(&block)
-			socket = OpenSSL::SSL::SSLSocket.new(@endpoint.connect, context)
+			socket = ::OpenSSL::SSL::SSLSocket.new(@endpoint.connect, context)
 			
 			if hostname = self.hostname
 				socket.hostname = hostname
@@ -101,13 +103,6 @@ module IO::Endpoint
 			@endpoint.each do |endpoint|
 				yield self.class.new(endpoint, **@options)
 			end
-		end
-		
-		protected
-		
-		def accepted(socket)
-			socket.accept
-			socket
 		end
 	end
 

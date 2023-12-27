@@ -77,7 +77,7 @@ module IO::Endpoint
 					socket, address = server.accept
 					
 					Fiber.schedule do
-						yield accepted(socket), address
+						yield socket, address
 					end
 				end
 			end
@@ -98,12 +98,6 @@ module IO::Endpoint
 			uri = URI.parse(string)
 			
 			IO::Endpoint.public_send(uri.scheme, uri.host, uri.port, **options)
-		end
-		
-		protected
-		
-		def accepted(socket)
-			socket
 		end
 	end
 end

@@ -21,7 +21,9 @@ describe IO::Endpoint::UNIXEndpoint do
 	end
 	
 	it "can connect to address" do
-		server = endpoint.bind
+		sockets = endpoint.bind
+		server = sockets.first
+		
 		expect(server).to be_a(Socket)
 		
 		server.listen(1)
@@ -46,6 +48,7 @@ describe IO::Endpoint::UNIXEndpoint do
 			socket.close
 		end
 	ensure
+		sockets&.each(&:close)
 		thread&.kill
 	end
 end

@@ -17,7 +17,8 @@ describe IO::Endpoint::AddressEndpoint do
 	end
 	
 	it "can connect to address" do
-		server = endpoint.bind
+		sockets = endpoint.bind
+		server = sockets.first
 		expect(server).to be_a(Socket)
 		
 		server.listen(1)
@@ -36,7 +37,7 @@ describe IO::Endpoint::AddressEndpoint do
 			socket.close
 		end
 	ensure
-		server&.close
+		sockets.each(&:close)
 		thread&.join
 	end
 	
