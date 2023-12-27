@@ -46,8 +46,8 @@ module IO::Endpoint
 				context.set_params(params)
 			end
 			
-			context.setup
-			context.freeze
+			# context.setup
+			# context.freeze
 			
 			return context
 		end
