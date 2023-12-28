@@ -48,8 +48,8 @@ describe IO::Endpoint::UNIXEndpoint do
 			socket.close
 		end
 	ensure
-		sockets&.each(&:close)
 		thread&.kill
+		sockets&.each(&:close)
 	end
 end
 
