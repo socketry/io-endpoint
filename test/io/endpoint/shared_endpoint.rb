@@ -21,7 +21,8 @@ describe IO::Endpoint::SharedEndpoint do
 	end
 	
 	it "can connect to address" do
-		server = internal_endpoint.bind
+		sockets = internal_endpoint.bind
+		server = sockets.first
 		
 		server.listen(1)
 		
@@ -41,7 +42,7 @@ describe IO::Endpoint::SharedEndpoint do
 			socket.close
 		end
 	ensure
-		server&.close
+		sockets&.each(&:close)
 		thread&.join
 	end
 end

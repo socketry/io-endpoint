@@ -4,6 +4,7 @@
 # Copyright, 2023, by Samuel Williams.
 
 require 'io/endpoint/composite_endpoint'
+require 'io/endpoint/unix_endpoint'
 require 'with_temporary_directory'
 
 describe IO::Endpoint::CompositeEndpoint do
@@ -41,7 +42,7 @@ describe IO::Endpoint::CompositeEndpoint do
 			socket.close
 		end
 	ensure
-		server&.close
+		servers&.each(&:close)
 		thread&.join
 	end
 end

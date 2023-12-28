@@ -4,6 +4,7 @@
 # Copyright, 2023, by Samuel Williams.
 
 require 'io/endpoint/host_endpoint'
+require 'io/endpoint/shared_endpoint'
 
 describe IO::Endpoint::HostEndpoint do
 	let(:specification) {["localhost", 0, nil, ::Socket::SOCK_STREAM]}
@@ -15,7 +16,7 @@ describe IO::Endpoint::HostEndpoint do
 		end
 	end
 	
-	it "can connect to address" do
+	it "can connect to bound address" do
 		bound = endpoint.bound
 		
 		bound.bind do |server|
@@ -26,7 +27,8 @@ describe IO::Endpoint::HostEndpoint do
 		end
 		
 		bound.sockets.each do |server|
-			server_endpoint = IO::Endpoint::AddressEndpoint.new(server.local_address)
+			# server_endpoint = IO::Endpoint::AddressEndpoint.new(server.local_address)
+			server_endpoint = subject.new(["localhost", server.local_address.ip_port, nil, ::Socket::SOCK_STREAM])
 			
 			client = server_endpoint.connect
 			expect(client).to be_a(Socket)

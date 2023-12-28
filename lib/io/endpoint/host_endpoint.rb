@@ -23,7 +23,11 @@ module IO::Endpoint
 		attr :specification
 		
 		def hostname
-			@specification.first
+			@specification[0]
+		end
+		
+		def service
+			@specification[1]
 		end
 		
 		# Try to connect to the given host by connecting to each address in sequence until a connection is made.
@@ -35,7 +39,7 @@ module IO::Endpoint
 			
 			Addrinfo.foreach(*@specification) do |address|
 				begin
-					socket = wrapper.connect(@address, **@options)
+					socket = wrapper.connect(address, **@options)
 				rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, Errno::EAGAIN => last_error
 					# Try again unless if possible, otherwise raise...
 				else

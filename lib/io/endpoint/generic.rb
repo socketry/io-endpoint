@@ -77,13 +77,15 @@ module IO::Endpoint
 					socket, address = server.accept
 					
 					Fiber.schedule do
-						yield accepted(socket), address
+						yield socket, address
 					end
 				end
 			end
 		end
 		
-		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.
+		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.\
+		#
+		# You should not use untrusted input as it may execute arbitrary code.
 		#
 		# @param string [String] URI as string. Scheme will decide implementation used.
 		# @param options keyword arguments passed through to {#initialize}
@@ -95,13 +97,7 @@ module IO::Endpoint
 		def self.parse(string, **options)
 			uri = URI.parse(string)
 			
-			self.public_send(uri.scheme, uri.host, uri.port, **options)
-		end
-		
-		protected
-		
-		def accepted(socket)
-			socket
+			IO::Endpoint.public_send(uri.scheme, uri.host, uri.port, **options)
 		end
 	end
 end

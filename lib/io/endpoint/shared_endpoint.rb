@@ -7,16 +7,16 @@ require_relative 'generic'
 require_relative 'composite_endpoint'
 require_relative 'socket_endpoint'
 
+require 'openssl'
+
 module IO::Endpoint
 	# Pre-connect and pre-bind sockets so that it can be used between processes.
 	class SharedEndpoint < Generic
 		# Create a new `SharedEndpoint` by binding to the given endpoint.
 		def self.bound(endpoint, backlog: Socket::SOMAXCONN, close_on_exec: false, **options)
-			sockets = []
+			sockets = endpoint.bind(**options)
 			
-			endpoint.each do |server_endpoint|
-				server = server_endpoint.bind(**options)
-				
+			sockets.each do |server|
 				# This is somewhat optional. We want to have a generic interface as much as possible so that users of this interface can just call it without knowing a lot of internal details. Therefore, we ignore errors here if it's because the underlying socket does not support the operation.
 				begin
 					server.listen(backlog)
@@ -25,8 +25,6 @@ module IO::Endpoint
 				end
 				
 				server.close_on_exec = close_on_exec
-				
-				sockets << server
 			end
 			
 			return self.new(endpoint, sockets)

@@ -13,7 +13,9 @@ module IO::Endpoint
 		end
 		
 		def each(&block)
-			@endpoints.each(&block)
+			@endpoints.each do |endpoint|
+				endpoint.each(&block)
+			end
 		end
 		
 		def connect(&block)
@@ -30,7 +32,13 @@ module IO::Endpoint
 		end
 		
 		def bind(&block)
-			@endpoints.map(&:bind)
+			if block_given?
+				@endpoints.each do |endpoint|
+					endpoint.bind(&block)
+				end
+			else
+				@endpoints.map(&:bind).flatten.compact
+			end
 		end
 	end
 	
