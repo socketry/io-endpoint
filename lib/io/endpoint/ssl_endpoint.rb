@@ -91,14 +91,14 @@ module IO::Endpoint
 		# Connect to the underlying endpoint and establish a SSL connection.
 		# @yield [Socket] the socket which is being connected
 		# @return [Socket] the connected socket
-		def bind
+		def bind(*arguments, **options, &block)
 			if block_given?
-				@endpoint.bind do |server|
-					yield ::OpenSSL::SSL::SSLServer.new(server, context)
+				@endpoint.bind(*arguments, **options) do |server|
+					yield ::OpenSSL::SSL::SSLServer.new(server, self.context)
 				end
 			else
-				@endpoint.bind.map do |server|
-					::OpenSSL::SSL::SSLServer.new(server, context)
+				@endpoint.bind(*arguments, **options).map do |server|
+					::OpenSSL::SSL::SSLServer.new(server, self.context)
 				end
 			end
 		end
@@ -107,7 +107,7 @@ module IO::Endpoint
 		# @yield [Socket] the socket which is being connected
 		# @return [Socket] the connected socket
 		def connect(&block)
-			socket = ::OpenSSL::SSL::SSLSocket.new(@endpoint.connect, context)
+			socket = ::OpenSSL::SSL::SSLSocket.new(@endpoint.connect, self.context)
 			
 			if hostname = self.hostname
 				socket.hostname = hostname

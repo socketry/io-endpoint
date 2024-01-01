@@ -12,6 +12,16 @@ describe IO::Endpoint::SocketEndpoint do
 	let(:path) {File.join(temporary_directory, "test.ipc")}
 	let(:internal_endpoint) {IO::Endpoint::UNIXEndpoint.new(path)}
 	
+	with "#to_s" do
+		it "can convert to string" do
+			internal_endpoint.bind do |internal_socket|
+				endpoint = subject.new(internal_socket)
+				
+				expect(endpoint.to_s).to be_a(String)
+			end
+		end
+	end
+	
 	it "can bind to address" do
 		internal_endpoint.bind do |internal_socket|
 			endpoint = subject.new(internal_socket)

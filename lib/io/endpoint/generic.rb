@@ -69,21 +69,13 @@ module IO::Endpoint
 		
 		# Accept connections from the specified endpoint.
 		# @param backlog [Integer] the number of connections to listen for.
-		def accept(backlog: Socket::SOMAXCONN, &block)
-			bind do |server|
-				server.listen(backlog) if backlog
-				
-				while true
-					socket, address = server.accept
-					
-					Fiber.schedule do
-						yield socket, address
-					end
-				end
+		def accept(wrapper = Wrapper.default, *arguments, **options, &block)
+			bind(wrapper, *arguments, **options) do |server|
+				wrapper.accept(server, &block)
 			end
 		end
 		
-		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.\
+		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.
 		#
 		# You should not use untrusted input as it may execute arbitrary code.
 		#

@@ -18,12 +18,12 @@ module IO::Endpoint
 			end
 		end
 		
-		def connect(&block)
+		def connect(wrapper = Wrapper.default, &block)
 			last_error = nil
 			
 			@endpoints.each do |endpoint|
 				begin
-					return endpoint.connect(&block)
+					return endpoint.connect(wrapper, &block)
 				rescue => last_error
 				end
 			end
@@ -31,7 +31,7 @@ module IO::Endpoint
 			raise last_error
 		end
 		
-		def bind(&block)
+		def bind(wrapper = Wrapper.default, &block)
 			if block_given?
 				@endpoints.each do |endpoint|
 					endpoint.bind(&block)
