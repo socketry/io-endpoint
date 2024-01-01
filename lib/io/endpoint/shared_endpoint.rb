@@ -32,11 +32,11 @@ module IO::Endpoint
 		
 		# Create a new `SharedEndpoint` by connecting to the given endpoint.
 		def self.connected(endpoint, close_on_exec: false)
-			wrapper = endpoint.connect
+			socket = endpoint.connect
 			
-			wrapper.close_on_exec = close_on_exec
+			socket.close_on_exec = close_on_exec
 			
-			return self.new(endpoint, [wrapper])
+			return self.new(endpoint, [socket])
 		end
 		
 		def initialize(endpoint, sockets, **options)
@@ -53,18 +53,18 @@ module IO::Endpoint
 		
 		def local_address_endpoint(**options)
 			endpoints = @sockets.map do |wrapper|
-				AddressEndpoint.new(wrapper.to_io.local_address)
+				AddressEndpoint.new(wrapper.to_io.local_address, **options)
 			end
 			
-			return CompositeEndpoint.new(endpoints, **options)
+			return CompositeEndpoint.new(endpoints)
 		end
 		
 		def remote_address_endpoint(**options)
 			endpoints = @sockets.map do |wrapper|
-				AddressEndpoint.new(wrapper.to_io.remote_address)
+				AddressEndpoint.new(wrapper.to_io.remote_address, **options)
 			end
 			
-			return CompositeEndpoint.new(endpoints, **options)
+			return CompositeEndpoint.new(endpoints)
 		end
 		
 		# Close all the internal sockets.
@@ -113,9 +113,9 @@ module IO::Endpoint
 			end
 		end
 		
-		def accept(**options, &block)
-			bind do |server|
-				server.accept(&block)
+		def accept(wrapper = Wrapper.default, &block)
+			bind(wrapper) do |server|
+				wrapper.accept(server, &block)
 			end
 		end
 		

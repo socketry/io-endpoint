@@ -30,7 +30,6 @@ module IO::Endpoint
 			# On Darwin, sometimes occurs when the connection is not yet fully formed. Empirically, TCP_NODELAY is enabled despite this result.
 		rescue Errno::EOPNOTSUPP
 			# Some platforms may simply not support the operation.
-			# Console.logger.warn(self) {"Unable to set sync=#{value}!"}
 		rescue Errno::ENOPROTOOPT
 			# It may not be supported by the protocol (e.g. UDP). ¯\_(ツ)_/¯
 		end
@@ -131,14 +130,14 @@ module IO::Endpoint
 		end
 		
 		# Bind to a local address and accept connections in a loop.
-		def accept(*arguments, backlog: SOMAXCONN, **options, &block)
-			bind(*arguments, **options) do |server|
-				server.listen(backlog) if backlog
+		def accept(server, timeout: server.timeout, &block)
+			while true
+				socket, address = server.accept
+				
+				socket.timeout = timeout if timeout != false
 				
 				async do
-					while true
-						server.accept(&block)
-					end
+					yield socket, address
 				end
 			end
 		end
