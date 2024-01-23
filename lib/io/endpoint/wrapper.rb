@@ -46,11 +46,6 @@ module IO::Endpoint
 		def build(*arguments, timeout: nil, reuse_address: true, reuse_port: nil, linger: nil, buffered: false)
 			socket = ::Socket.new(*arguments)
 			
-			# Set the timeout:
-			if timeout
-				set_timeout(socket, timeout)
-			end
-			
 			if reuse_address
 				socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 			end
@@ -113,8 +108,13 @@ module IO::Endpoint
 		#  socket = Async::IO::Socket.bind(Async::IO::Address.tcp("0.0.0.0", 9090))
 		# @param local_address [Address] The local address to bind to.
 		# @option protocol [Integer] The socket protocol to use.
-		def bind(local_address, protocol: 0, **options, &block)
+		def bind(local_address, protocol: 0, bound_timeout: nil, **options, &block)
 			socket = build(local_address.afamily, local_address.socktype, protocol, **options) do |socket|
+				# Set the timeout:
+				if bound_timeout
+					set_timeout(socket, bound_timeout)
+				end
+				
 				socket.bind(local_address.to_sockaddr)
 			end
 			
@@ -130,7 +130,7 @@ module IO::Endpoint
 		end
 		
 		# Bind to a local address and accept connections in a loop.
-		def accept(server, timeout: server.timeout, &block)
+		def accept(server, timeout: nil, &block)
 			while true
 				socket, address = server.accept
 				

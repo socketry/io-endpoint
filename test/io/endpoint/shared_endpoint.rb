@@ -4,6 +4,7 @@
 # Copyright, 2023, by Samuel Williams.
 
 require 'io/endpoint/shared_endpoint'
+require 'io/endpoint/unix_endpoint'
 require 'with_temporary_directory'
 
 describe IO::Endpoint::SharedEndpoint do
@@ -44,5 +45,30 @@ describe IO::Endpoint::SharedEndpoint do
 	ensure
 		sockets&.each(&:close)
 		thread&.join
+	end
+	
+	with "timeouts" do
+		let(:timeout) {nil}
+		let(:accepted_timeout) {1.0}
+		
+		let(:internal_endpoint) {IO::Endpoint::UNIXEndpoint.new(path, timeout: timeout, accepted_timeout: accepted_timeout)}
+		
+		it "can accept with distinct timeouts" do
+			internal_endpoint.accept
+			
+			endpoint = subject.connected(internal_endpoint)
+			
+			endpoint.connect do |socket|
+				expect(socket).to be_a(Socket)
+				
+				# Wait for the connection to be closed.
+				socket.wait_readable
+				
+				socket.close
+			end
+		ensure
+			sockets&.each(&:close)
+			thread&.join	
+		end
 	end
 end

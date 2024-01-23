@@ -54,6 +54,11 @@ module IO::Endpoint
 			@options[:timeout]
 		end
 		
+		# @return [Numeric] The default timeout for accepted sockets.
+		def accept_timeout
+			@options.fetch(:accepted_timeout)
+		end
+		
 		# @return [Address] the address to bind to before connecting.
 		def local_address
 			@options[:local_address]
@@ -71,7 +76,7 @@ module IO::Endpoint
 		# @param backlog [Integer] the number of connections to listen for.
 		def accept(wrapper = Wrapper.default, *arguments, **options, &block)
 			bind(wrapper, *arguments, **options) do |server|
-				wrapper.accept(server, &block)
+				wrapper.accept(server, **options, &block)
 			end
 		end
 		

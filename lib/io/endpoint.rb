@@ -5,6 +5,7 @@
 
 require_relative "endpoint/version"
 require_relative "endpoint/generic"
+require_relative "endpoint/shared_endpoint"
 
 module IO::Endpoint
 	def self.file_descriptor_limit
