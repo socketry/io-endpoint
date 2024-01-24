@@ -43,7 +43,7 @@ module IO::Endpoint
 		# @option reuse_address [Boolean] Allow this port to be bound in multiple processes.
 		# @option linger [Boolean] Wait for data to be sent before closing the socket.
 		# @option buffered [Boolean] Enable or disable Nagle's algorithm for TCP sockets.
-		def build(*arguments, timeout: nil, reuse_address: true, reuse_port: nil, linger: nil, buffered: false)
+		def build(*arguments, reuse_address: true, reuse_port: nil, linger: nil, buffered: false, **options)
 			socket = ::Socket.new(*arguments)
 			
 			if reuse_address
@@ -75,8 +75,12 @@ module IO::Endpoint
 		#  socket = Async::IO::Socket.connect(Async::IO::Address.tcp("8.8.8.8", 53))
 		# @param remote_address [Address] The remote address to connect to.
 		# @option local_address [Address] The local address to bind to before connecting.
-		def connect(remote_address, local_address: nil, **options)
+		def connect(remote_address, local_address: nil, timeout: nil, **options)
 			socket = build(remote_address.afamily, remote_address.socktype, remote_address.protocol, **options) do |socket|
+				if timeout
+					set_timeout(socket, timeout)
+				end
+				
 				if local_address
 					if defined?(IP_BIND_ADDRESS_NO_PORT)
 						# Inform the kernel (Linux 4.2+) to not reserve an ephemeral port when using bind(2) with a port number of 0. The port will later be automatically chosen at connect(2) time, in a way that allows sharing a source port as long as the 4-tuple is unique.

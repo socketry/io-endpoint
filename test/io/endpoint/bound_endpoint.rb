@@ -3,11 +3,11 @@
 # Released under the MIT License.
 # Copyright, 2023, by Samuel Williams.
 
-require 'io/endpoint/shared_endpoint'
+require 'io/endpoint/bound_endpoint'
 require 'io/endpoint/unix_endpoint'
 require 'with_temporary_directory'
 
-describe IO::Endpoint::SharedEndpoint do
+describe IO::Endpoint::BoundEndpoint do
 	include WithTemporaryDirectory
 	
 	let(:path) {File.join(temporary_directory, "test.ipc")}
@@ -32,7 +32,7 @@ describe IO::Endpoint::SharedEndpoint do
 			peer.close
 		end
 		
-		endpoint = subject.connected(internal_endpoint)
+		endpoint = internal_endpoint.connected
 		
 		endpoint.connect do |socket|
 			expect(socket).to be_a(Socket)
@@ -43,23 +43,37 @@ describe IO::Endpoint::SharedEndpoint do
 			socket.close
 		end
 	ensure
+		thread&.kill
 		sockets&.each(&:close)
-		thread&.join
 	end
 	
 	with "timeouts" do
-		let(:timeout) {nil}
-		let(:accepted_timeout) {1.0}
+		let(:timeout) {1.0}
 		
-		let(:internal_endpoint) {IO::Endpoint::UNIXEndpoint.new(path, timeout: timeout, accepted_timeout: accepted_timeout)}
+		let(:internal_endpoint) {IO::Endpoint::UNIXEndpoint.new(path, timeout: timeout)}
 		
 		it "can accept with distinct timeouts" do
-			internal_endpoint.accept
+			expect(internal_endpoint.timeout).to be == timeout
 			
-			endpoint = subject.connected(internal_endpoint)
+			bound_endpoint = internal_endpoint.bound
+			expect(bound_endpoint.timeout).to be == timeout
 			
-			endpoint.connect do |socket|
-				expect(socket).to be_a(Socket)
+			expect(bound_endpoint.sockets).not.to be(:empty?)
+			bound_endpoint.sockets.each do |socket|
+				expect(socket.timeout).to be_nil
+			end
+			
+			thread = Thread.new do
+				bound_endpoint.accept do |peer, address|
+					expect(peer.timeout).to be == timeout
+					peer.close
+				end
+			end
+			
+			connected_endpoint = internal_endpoint.connected
+			
+			connected_endpoint.connect do |socket|
+				expect(socket.timeout).to be == timeout
 				
 				# Wait for the connection to be closed.
 				socket.wait_readable
@@ -67,8 +81,9 @@ describe IO::Endpoint::SharedEndpoint do
 				socket.close
 			end
 		ensure
-			sockets&.each(&:close)
-			thread&.join	
+			thread&.kill
+			bound_endpoint&.close
+			connected_endpoint&.close
 		end
 	end
 end

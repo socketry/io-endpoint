@@ -54,30 +54,38 @@ module IO::Endpoint
 			@options[:timeout]
 		end
 		
-		# @return [Numeric] The default timeout for accepted sockets.
-		def accept_timeout
-			@options.fetch(:accepted_timeout)
+		# Bind a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
+		# @parameter wrapper [Wrapper] The wrapper to use for binding.
+		# @yields {|socket| ...}	An optional block which will be passed the socket.
+		#   @parameter socket [Socket] The socket which has been bound.
+		# @returns [Array(Socket)] the bound socket
+		def bind(wrapper = Wrapper.default, &block)
+			raise NotImplementedError
 		end
 		
-		# @return [Address] the address to bind to before connecting.
-		def local_address
-			@options[:local_address]
+		# Connects a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
+		# @parameter wrapper [Wrapper] The wrapper to use for connecting.
+		# @return [Socket] the connected socket
+		def connect(wrapper = Wrapper.default, &block)
+			raise NotImplementedError
 		end
 		
-		# Endpoints sometimes have multiple paths.
-		# @yield [Endpoint] Enumerate all discrete paths as endpoints.
+		# Bind and accept connections on the given address.
+		# @parameter wrapper [Wrapper] The wrapper to use for accepting connections.
+		# @yields [Socket] The accepted socket.
+		def accept(wrapper = Wrapper.default, &block)
+			bind(wrapper) do |server|
+				wrapper.accept(server, **@options, &block)
+			end
+		end
+		
+		# Enumerate all discrete paths as endpoints.
+		# @yields {|endpoint| ...} A block which will be passed each endpoint.
+		# 	@parameter endpoint [Endpoint] The endpoint.
 		def each
 			return to_enum unless block_given?
 			
 			yield self
-		end
-		
-		# Accept connections from the specified endpoint.
-		# @param backlog [Integer] the number of connections to listen for.
-		def accept(wrapper = Wrapper.default, *arguments, **options, &block)
-			bind(wrapper, *arguments, **options) do |server|
-				wrapper.accept(server, **options, &block)
-			end
 		end
 		
 		# Create an Endpoint instance by URI scheme. The host and port of the URI will be passed to the Endpoint factory method, along with any options.

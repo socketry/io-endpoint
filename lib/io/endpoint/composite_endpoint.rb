@@ -6,6 +6,7 @@
 require_relative 'generic'
 
 module IO::Endpoint
+	# A composite endpoint is a collection of endpoints that are used in order.
 	class CompositeEndpoint < Generic
 		def initialize(endpoints, **options)
 			super(**options)
