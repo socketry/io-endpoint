@@ -19,7 +19,7 @@ end
 group :test do
 	gem "bake"
 	gem "covered"
-	gem "sus"
+	gem "sus", ">= 0.24.3"
 	
 	gem "bake-test"
 	gem "bake-test-external"
