@@ -60,25 +60,25 @@ describe IO::Endpoint::BoundEndpoint do
 			
 			expect(bound_endpoint.sockets).not.to be(:empty?)
 			bound_endpoint.sockets.each do |socket|
-				expect(socket.timeout).to be_nil
+				expect(socket).to have_attributes(timeout: be_nil)
 			end
 			
 			thread = Thread.new do
-				bound_endpoint.accept do |peer, address|
-					expect(peer.timeout).to be == timeout
+				threads = bound_endpoint.accept do |peer, address|
+					expect(peer).to have_attributes(timeout: be == timeout)
 					peer.close
 				end
+			ensure
+				threads&.each(&:kill)
 			end
 			
 			connected_endpoint = internal_endpoint.connected
 			
 			connected_endpoint.connect do |socket|
-				expect(socket.timeout).to be == timeout
+				expect(socket).to have_attributes(timeout: be == timeout)
 				
 				# Wait for the connection to be closed.
 				socket.wait_readable
-				
-				socket.close
 			end
 		ensure
 			thread&.kill
