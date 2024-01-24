@@ -54,6 +54,11 @@ module IO::Endpoint
 			@options[:timeout]
 		end
 		
+		# @return [Address] the address to bind to before connecting.
+		def local_address
+			@options[:local_address]
+		end
+		
 		# Bind a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
 		# @parameter wrapper [Wrapper] The wrapper to use for binding.
 		# @yields {|socket| ...}	An optional block which will be passed the socket.
