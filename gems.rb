@@ -17,7 +17,7 @@ group :maintenance, optional: true do
 end
 
 group :test do
-	gem "bake"
+	gem "bake", "~> 0.19.0"
 	gem "covered"
 	gem "sus", ">= 0.24.3"
 	
