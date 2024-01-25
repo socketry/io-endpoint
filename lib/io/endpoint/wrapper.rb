@@ -159,10 +159,16 @@ module IO::Endpoint
 		end
 	end
 	
-	def Wrapper.default
-		if Fiber.scheduler
-			FiberWrapper.new
-		else
+	if Fiber.respond_to?(:scheduler)
+		def Wrapper.default
+			if Fiber.scheduler
+				FiberWrapper.new
+			else
+				ThreadWrapper.new
+			end
+		end
+	else
+		def Wrapper.default
 			ThreadWrapper.new
 		end
 	end
