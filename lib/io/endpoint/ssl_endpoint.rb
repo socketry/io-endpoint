@@ -8,34 +8,52 @@ require_relative 'generic'
 
 require 'openssl'
 
-module OpenSSL::SSL::SocketForwarder
-	unless method_defined?(:close_on_exec=)
-		def close_on_exec=(value)
-			to_io.close_on_exec = value
-		end
-	end
-	
-	unless method_defined?(:close_on_exec)
-		def local_address
-			to_io.local_address
-		end
-	end
-	
-	unless method_defined?(:wait)
-		def wait(*arguments)
-			to_io.wait(*arguments)
-		end
-	end
-	
-	unless method_defined?(:wait_readable)
-		def wait_readable(*arguments)
-			to_io.wait_readable(*arguments)
-		end
-	end
-	
-	unless method_defined?(:wait_writable)
-		def wait_writable(*arguments)
-			to_io.wait_writable(*arguments)
+module OpenSSL
+	module SSL
+		module SocketForwarder
+			unless method_defined?(:close_on_exec=)
+				def close_on_exec=(value)
+					to_io.close_on_exec = value
+				end
+			end
+			
+			unless method_defined?(:close_on_exec)
+				def local_address
+					to_io.local_address
+				end
+			end
+			
+			unless method_defined?(:wait)
+				def wait(*arguments)
+					to_io.wait(*arguments)
+				end
+			end
+			
+			unless method_defined?(:wait_readable)
+				def wait_readable(*arguments)
+					to_io.wait_readable(*arguments)
+				end
+			end
+			
+			unless method_defined?(:wait_writable)
+				def wait_writable(*arguments)
+					to_io.wait_writable(*arguments)
+				end
+			end
+			
+			if IO.method_defined?(:timeout)
+				unless method_defined?(:timeout)
+					def timeout
+						to_io.timeout
+					end
+				end
+				
+				unless method_defined?(:timeout=)
+					def timeout=(value)
+						to_io.timeout = value
+					end
+				end
+			end
 		end
 	end
 end
