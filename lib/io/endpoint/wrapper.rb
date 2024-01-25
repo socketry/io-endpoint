@@ -38,45 +38,26 @@ module IO::Endpoint
 			raise NotImplementedError
 		end
 		
-		# Build and wrap the underlying io.
-		# @option reuse_port [Boolean] Allow this port to be bound in multiple processes.
-		# @option reuse_address [Boolean] Allow this port to be bound in multiple processes.
-		# @option linger [Boolean] Wait for data to be sent before closing the socket.
-		# @option buffered [Boolean] Enable or disable Nagle's algorithm for TCP sockets.
-		def build(*arguments, reuse_address: true, reuse_port: nil, linger: nil, buffered: false, **options)
-			socket = ::Socket.new(*arguments)
-			
-			if reuse_address
-				socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-			end
-			
-			if reuse_port
-				socket.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
-			end
-			
-			if linger
-				socket.setsockopt(SOL_SOCKET, SO_LINGER, 1)
-			end
-			
-			if buffered == false
-				set_buffered(socket, buffered)
-			end
-			
-			yield socket if block_given?
-			
-			return socket
-		rescue
-			socket&.close
-			raise
-		end
-		
 		# Establish a connection to a given `remote_address`.
 		# @example
 		#  socket = Async::IO::Socket.connect(Async::IO::Address.tcp("8.8.8.8", 53))
-		# @param remote_address [Address] The remote address to connect to.
-		# @option local_address [Address] The local address to bind to before connecting.
-		def connect(remote_address, local_address: nil, timeout: nil, **options)
-			socket = build(remote_address.afamily, remote_address.socktype, remote_address.protocol, **options) do |socket|
+		# @parameter remote_address [Address] The remote address to connect to.
+		# @parameter linger [Boolean] Wait for data to be sent before closing the socket.
+		# @parameter local_address [Address] The local address to bind to before connecting.
+		def connect(remote_address, local_address: nil, linger: nil, timeout: nil, buffered: false, **options)
+			socket = nil
+			
+			begin
+				socket = ::Socket.new(remote_address.afamily, remote_address.socktype, remote_address.protocol)
+				
+				if linger
+					socket.setsockopt(SOL_SOCKET, SO_LINGER, 1)
+				end
+				
+				if buffered == false
+					set_buffered(socket, buffered)
+				end
+				
 				if timeout
 					set_timeout(socket, timeout)
 				end
@@ -89,6 +70,9 @@ module IO::Endpoint
 					
 					socket.bind(local_address.to_sockaddr)
 				end
+			rescue
+				socket&.close
+				raise
 			end
 			
 			begin
@@ -107,19 +91,48 @@ module IO::Endpoint
 			end
 		end
 		
+		# JRuby requires ServerSocket
+		if defined?(::ServerSocket)
+			ServerSocket = ::ServerSocket
+		else
+			ServerSocket = ::Socket
+		end
+		
 		# Bind to a local address.
 		# @example
 		#  socket = Async::IO::Socket.bind(Async::IO::Address.tcp("0.0.0.0", 9090))
-		# @param local_address [Address] The local address to bind to.
-		# @option protocol [Integer] The socket protocol to use.
-		def bind(local_address, protocol: 0, bound_timeout: nil, **options, &block)
-			socket = build(local_address.afamily, local_address.socktype, protocol, **options) do |socket|
+		# @parameter local_address [Address] The local address to bind to.
+		# @parameter reuse_port [Boolean] Allow this port to be bound in multiple processes.
+		# @parameter reuse_address [Boolean] Allow this port to be bound in multiple processes.
+		# @parameter linger [Boolean] Wait for data to be sent before closing the socket.
+		# @parameter protocol [Integer] The socket protocol to use.
+		def bind(local_address, protocol: 0, reuse_address: true, reuse_port: nil, linger: nil, bound_timeout: nil, **options, &block)
+			socket = nil
+			
+			begin
+				socket = ServerSocket.new(local_address.afamily, local_address.socktype, protocol)
+				
+				if reuse_address
+					socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+				end
+				
+				if reuse_port
+					socket.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1)
+				end
+				
+				if linger
+					socket.setsockopt(SOL_SOCKET, SO_LINGER, 1)
+				end
+				
 				# Set the timeout:
 				if bound_timeout
 					set_timeout(socket, bound_timeout)
 				end
 				
 				socket.bind(local_address.to_sockaddr)
+			rescue
+				socket&.close
+				raise
 			end
 			
 			return socket unless block_given?
