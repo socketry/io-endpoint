@@ -4,6 +4,7 @@
 # Copyright, 2023, by Samuel Williams.
 
 require 'io/endpoint/bound_endpoint'
+require 'io/endpoint/connected_endpoint'
 require 'io/endpoint/unix_endpoint'
 require 'with_temporary_directory'
 
@@ -63,13 +64,10 @@ describe IO::Endpoint::BoundEndpoint do
 				expect(socket).to have_attributes(timeout: be_nil)
 			end
 			
-			thread = Thread.new do
-				threads = bound_endpoint.accept do |peer, address|
-					expect(peer).to have_attributes(timeout: be == timeout)
-					peer.close
-				end
-			ensure
-				threads&.each(&:kill)
+			threads = bound_endpoint.accept do |peer, address|
+				expect(peer).to have_attributes(timeout: be == timeout)
+				peer.puts "Hello"
+				peer.close
 			end
 			
 			connected_endpoint = internal_endpoint.connected
@@ -81,7 +79,7 @@ describe IO::Endpoint::BoundEndpoint do
 				socket.wait_readable
 			end
 		ensure
-			thread&.kill
+			threads&.each(&:kill)
 			bound_endpoint&.close
 			connected_endpoint&.close
 		end

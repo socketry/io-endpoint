@@ -66,7 +66,7 @@ module IO::Endpoint
 		end
 		
 		def bind(wrapper = Wrapper.default, &block)
-			@sockets.each.map do |server|
+			@sockets.map do |server|
 				if block_given?
 					wrapper.async do
 						yield server

@@ -149,13 +149,13 @@ module IO::Endpoint
 	
 	class ThreadWrapper < Wrapper
 		def async(&block)
-			Thread.new(&block)
+			::Thread.new(&block)
 		end
 	end
 	
 	class FiberWrapper < Wrapper
 		def async(&block)
-			Fiber.schedule(&block)
+			::Fiber.schedule(&block)
 		end
 	end
 	
