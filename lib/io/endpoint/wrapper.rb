@@ -138,7 +138,7 @@ module IO::Endpoint
 			while true
 				socket, address = server.accept
 				
-				socket.timeout = timeout if timeout != false
+				set_timeout(socket, timeout) if timeout != false
 				
 				async do
 					yield socket, address
