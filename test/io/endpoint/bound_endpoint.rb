@@ -54,6 +54,8 @@ describe IO::Endpoint::BoundEndpoint do
 		let(:internal_endpoint) {IO::Endpoint::UNIXEndpoint.new(path, timeout: timeout)}
 		
 		it "can accept with distinct timeouts" do
+			skip_unless_method_defined(:timeout, IO)
+			
 			expect(internal_endpoint.timeout).to be == timeout
 			
 			bound_endpoint = internal_endpoint.bound
