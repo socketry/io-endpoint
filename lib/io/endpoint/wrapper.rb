@@ -147,11 +147,17 @@ module IO::Endpoint
 		end
 		
 		# Bind to a local address and accept connections in a loop.
-		def accept(server, timeout: nil, &block)
+		def accept(server, timeout: nil, linger: nil, **options, &block)
 			while true
 				socket, address = server.accept
 				
-				set_timeout(socket, timeout) if timeout != false
+				if linger
+					socket.setsockopt(SOL_SOCKET, SO_LINGER, 1)
+				end
+				
+				if timeout
+					set_timeout(socket, timeout)
+				end
 				
 				async do
 					yield socket, address
