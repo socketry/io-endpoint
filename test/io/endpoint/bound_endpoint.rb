@@ -48,6 +48,39 @@ describe IO::Endpoint::BoundEndpoint do
 		sockets&.each(&:close)
 	end
 	
+	it "can stop accepting connections" do
+		sockets = internal_endpoint.bind
+		server = sockets.first
+		
+		server.listen(1)
+		
+		thread = Thread.new do
+			Thread.current.report_on_exception = false
+			
+			while true
+				peer, address = server.accept
+				peer.close
+			end
+		end
+		
+		endpoint = internal_endpoint.connected
+		
+		endpoint.connect do |socket|
+			socket.wait_readable
+			socket.close
+		end
+		
+		server.close
+		
+		expect do
+			endpoint.connect
+		end.to raise_exception(IOError, message: be =~ /closed stream/)
+		
+		expect do
+			thread.join
+		end.to raise_exception(IOError, message: be =~ /stream closed/)
+	end
+	
 	with "timeouts" do
 		let(:timeout) {1.0}
 		
