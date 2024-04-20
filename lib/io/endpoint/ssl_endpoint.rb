@@ -17,7 +17,7 @@ module OpenSSL
 				end
 			end
 			
-			unless method_defined?(:close_on_exec)
+			unless method_defined?(:local_address)
 				def local_address
 					to_io.local_address
 				end
