@@ -23,6 +23,12 @@ module OpenSSL
 				end
 			end
 			
+			unless method_defined?(:remote_address)
+				def remote_address
+					to_io.remote_address
+				end
+			end
+			
 			unless method_defined?(:wait)
 				def wait(*arguments)
 					to_io.wait(*arguments)
