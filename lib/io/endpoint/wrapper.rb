@@ -15,7 +15,8 @@ module IO::Endpoint
 			end
 		else
 			def set_timeout(io, timeout)
-				warn "IO#timeout= not supported on this platform."
+				# warn "IO#timeout= not supported on this platform."
+				# Unsupported.
 			end
 		end
 		
