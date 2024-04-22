@@ -28,4 +28,4 @@ This project is governed by the [Contributor Covenant](https://www.contributor-c
 
 ## See Also
 
-  - [async-io](https://github.com/socketry/async-io) — Asynchronous IO primitives.
+  - [async-io](https://github.com/socketry/async-io) — Where this implementation originally came from.
