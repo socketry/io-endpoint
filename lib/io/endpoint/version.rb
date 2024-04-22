@@ -5,6 +5,6 @@
 
 class IO
 	module Endpoint
-		VERSION = "0.8.0"
+		VERSION = "0.8.1"
 	end
 end
