@@ -9,14 +9,9 @@ module IO::Endpoint
 	class Wrapper
 		include ::Socket::Constants
 		
-		if IO.method_defined?(:timeout=)
-			def set_timeout(io, timeout)
+		def set_timeout(io, timeout)
+			if io.respond_to?(:timeout=)
 				io.timeout = timeout
-			end
-		else
-			def set_timeout(io, timeout)
-				# warn "IO#timeout= not supported on this platform."
-				# Unsupported.
 			end
 		end
 		
