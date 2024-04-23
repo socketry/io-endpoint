@@ -112,17 +112,28 @@ module IO::Endpoint
 			@context ||= build_context
 		end
 		
+		def make_server(io)
+			::OpenSSL::SSL::SSLServer.new(io, self.context)
+		end
+		
+		def make_socket(io)
+			::OpenSSL::SSL::SSLSocket.new(io, self.context).tap do |socket|
+				# We consider the underlying IO is owned by the SSL socket:
+				socket.sync_close = true
+			end
+		end
+		
 		# Connect to the underlying endpoint and establish a SSL connection.
 		# @yield [Socket] the socket which is being connected
 		# @return [Socket] the connected socket
 		def bind(*arguments, **options, &block)
 			if block_given?
 				@endpoint.bind(*arguments, **options) do |server|
-					yield ::OpenSSL::SSL::SSLServer.new(server, self.context)
+					yield self.make_server(server)
 				end
 			else
 				@endpoint.bind(*arguments, **options).map do |server|
-					::OpenSSL::SSL::SSLServer.new(server, self.context)
+					self.make_server(server)
 				end
 			end
 		end
@@ -131,7 +142,7 @@ module IO::Endpoint
 		# @yield [Socket] the socket which is being connected
 		# @return [Socket] the connected socket
 		def connect(&block)
-			socket = ::OpenSSL::SSL::SSLSocket.new(@endpoint.connect, self.context)
+			socket = self.make_socket(@endpoint.connect)
 			
 			if hostname = self.hostname
 				socket.hostname = hostname
