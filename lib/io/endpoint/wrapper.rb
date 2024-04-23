@@ -102,7 +102,7 @@ module IO::Endpoint
 		# @parameter reuse_address [Boolean] Allow this port to be bound in multiple processes.
 		# @parameter linger [Boolean] Wait for data to be sent before closing the socket.
 		# @parameter protocol [Integer] The socket protocol to use.
-		def bind(local_address, protocol: 0, reuse_address: true, reuse_port: nil, linger: nil, bound_timeout: nil, **options, &block)
+		def bind(local_address, protocol: 0, reuse_address: true, reuse_port: nil, linger: nil, bound_timeout: nil, backlog: Socket::SOMAXCONN, **options, &block)
 			socket = nil
 			
 			begin
@@ -126,6 +126,10 @@ module IO::Endpoint
 				end
 				
 				socket.bind(local_address.to_sockaddr)
+				
+				if backlog
+					socket.listen(backlog)
+				end
 			rescue
 				socket&.close
 				raise
