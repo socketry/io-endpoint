@@ -25,4 +25,5 @@ group :test do
 	gem "bake-test-external"
 	
 	gem "sus-fixtures-openssl"
+	gem "sus-fixtures-async"
 end

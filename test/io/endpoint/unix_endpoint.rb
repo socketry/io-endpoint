@@ -5,6 +5,7 @@
 
 require 'io/endpoint/unix_endpoint'
 require 'with_temporary_directory'
+require 'sus/fixtures/async/reactor_context'
 
 describe IO::Endpoint::UNIXEndpoint do
 	include WithTemporaryDirectory
@@ -54,12 +55,33 @@ describe IO::Endpoint::UNIXEndpoint do
 end
 
 describe IO::Endpoint do
-	let(:endpoint) {subject.unix("/tmp/test.ipc")}
+	let(:endpoint) {subject.unix("/tmp/test.ipc", Socket::SOCK_DGRAM)}
 	
 	with '.unix' do
 		it "can construct endpoint from path" do
 			expect(endpoint).to be_a(IO::Endpoint::UNIXEndpoint)
 			expect(endpoint).to have_attributes(path: be == "/tmp/test.ipc")
+		end
+
+		with "a simple UDP server" do
+			include Sus::Fixtures::Async::ReactorContext
+			
+			it "can send and receive UDP messages" do
+				server_task = Async do
+					endpoint.bind do |server|
+						expect(server).to be_a(Socket)
+						packet, address = server.recvfrom(512)
+						
+						expect(packet).to be == "Hello World!"
+					end
+				end
+				
+				endpoint.connect do |peer|
+					peer.sendmsg("Hello World!")
+				end
+				
+				server_task.wait
+			end
 		end
 	end
 end

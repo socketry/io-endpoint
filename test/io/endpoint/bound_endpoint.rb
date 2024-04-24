@@ -26,8 +26,6 @@ describe IO::Endpoint::BoundEndpoint do
 		sockets = internal_endpoint.bind
 		server = sockets.first
 		
-		server.listen(1)
-		
 		thread = Thread.new do
 			peer, address = server.accept
 			peer.close
@@ -51,8 +49,6 @@ describe IO::Endpoint::BoundEndpoint do
 	it "can stop accepting connections" do
 		sockets = internal_endpoint.bind
 		server = sockets.first
-		
-		server.listen(1)
 		
 		thread = Thread.new do
 			Thread.current.report_on_exception = false

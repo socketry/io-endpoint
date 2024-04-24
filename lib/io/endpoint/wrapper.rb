@@ -128,7 +128,12 @@ module IO::Endpoint
 				socket.bind(local_address.to_sockaddr)
 				
 				if backlog
-					socket.listen(backlog)
+					begin
+						# Generally speaking, bind/listen is a common pattern, but it's not applicable to all socket types. We ignore the error if it's not supported as the alternative is exposing this upstream, which seems less desirable than handling it here. In other words, `bind` in this context means "prepare it to accept connections", whatever that means for the given socket type.
+						socket.listen(backlog)
+					rescue Errno::EOPNOTSUPP
+						# Ignore.
+					end
 				end
 			rescue
 				socket&.close
