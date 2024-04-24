@@ -1,0 +1,6 @@
+async-http:
+  url: https://github.com/socketry/async-http
+  command: bundle exec bake test
+falcon:
+  url: https://github.com/socketry/falcon
+  command: bundle exec bake test

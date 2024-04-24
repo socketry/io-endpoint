@@ -6,6 +6,7 @@
 require 'io/endpoint/unix_endpoint'
 require 'with_temporary_directory'
 require 'sus/fixtures/async/reactor_context'
+require 'async/variable'
 
 describe IO::Endpoint::UNIXEndpoint do
 	include WithTemporaryDirectory
@@ -67,14 +68,20 @@ describe IO::Endpoint do
 			include Sus::Fixtures::Async::ReactorContext
 			
 			it "can send and receive UDP messages" do
+				bound = Async::Variable.new
+				
 				server_task = Async do
 					endpoint.bind do |server|
+						bound.resolve(true)
+						
 						expect(server).to be_a(Socket)
 						packet, address = server.recvfrom(512)
 						
 						expect(packet).to be == "Hello World!"
 					end
 				end
+				
+				bound.wait
 				
 				endpoint.connect do |peer|
 					peer.sendmsg("Hello World!")
