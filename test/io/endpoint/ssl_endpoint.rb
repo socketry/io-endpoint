@@ -8,40 +8,83 @@ require 'io/endpoint/shared_endpoint'
 require 'sus/fixtures/openssl'
 
 describe IO::Endpoint::SSLEndpoint do
-	include Sus::Fixtures::OpenSSL::ValidCertificateContext
-	include Sus::Fixtures::OpenSSL::VerifiedCertificateContext
-	
-	let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
-	let(:server_endpoint) {subject.new(endpoint, ssl_context: server_context)}
-	
-	def client_endpoint(address)
-		endpoint = IO::Endpoint::AddressEndpoint.new(address)
-		return subject.new(endpoint, ssl_context: client_context)
+	with "valid certificates" do
+		include Sus::Fixtures::OpenSSL::ValidCertificateContext
+		include Sus::Fixtures::OpenSSL::VerifiedCertificateContext
+		
+		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
+		let(:server_endpoint) {subject.new(endpoint, ssl_context: server_context)}
+		
+		def client_endpoint(address)
+			endpoint = IO::Endpoint::AddressEndpoint.new(address)
+			return subject.new(endpoint, ssl_context: client_context)
+		end
+		
+		it "can connect to bound address" do
+			bound = server_endpoint.bound
+			
+			bound.bind do |server|
+				expect(server).to be_a(::OpenSSL::SSL::SSLServer)
+				
+				peer, address = server.accept
+				peer.accept
+				peer.close
+			end
+			
+			bound.sockets.each do |server|
+				connect_endpoint = client_endpoint(server.local_address)
+				
+				client = connect_endpoint.connect
+				expect(client).to be_a(::OpenSSL::SSL::SSLSocket)
+				expect(client).to be(:sync_close)
+				
+				# Wait for the connection to be closed.
+				client.wait_readable
+				
+				client.close
+			end
+		ensure
+			bound&.close
+		end
 	end
 	
-	it "can connect to bound address" do
-		bound = server_endpoint.bound
+	with "invalid certificates" do
+		include Sus::Fixtures::OpenSSL::InvalidCertificateContext
+		include Sus::Fixtures::OpenSSL::VerifiedCertificateContext
 		
-		bound.bind do |server|
-			expect(server).to be_a(::OpenSSL::SSL::SSLServer)
-			
-			peer, address = server.accept
-			peer.close
+		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
+		let(:server_endpoint) {subject.new(endpoint, ssl_context: server_context)}
+		
+		def client_endpoint(address)
+			endpoint = IO::Endpoint::AddressEndpoint.new(address)
+			return subject.new(endpoint, ssl_context: client_context)
 		end
 		
-		bound.sockets.each do |server|
-			connect_endpoint = client_endpoint(server.local_address)
+		it "doesn't cause the accept loop to exit" do
+			bound = server_endpoint.bound
 			
-			client = connect_endpoint.connect
-			expect(client).to be_a(::OpenSSL::SSL::SSLSocket)
-			expect(client).to be(:sync_close)
+			bound.bind do |server|
+				wrapper = IO::Endpoint::Wrapper.default
+				
+				wrapper.accept(server) do |peer|
+					peer.close
+				end
+			rescue IOError
+				# Normal exit from bound&.close
+			end
 			
-			# Wait for the connection to be closed.
-			client.wait_readable
-			
-			client.close
+			2.times do
+				bound.sockets.each do |server|
+					connect_endpoint = client_endpoint(server.local_address)
+					begin
+						connect_endpoint.connect
+					rescue
+						# Ignore.
+					end
+				end
+			end
+		ensure
+			bound&.close
 		end
-	ensure
-		bound&.close
 	end
 end

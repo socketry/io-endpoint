@@ -113,7 +113,9 @@ module IO::Endpoint
 		end
 		
 		def make_server(io)
-			::OpenSSL::SSL::SSLServer.new(io, self.context)
+			::OpenSSL::SSL::SSLServer.new(io, self.context).tap do |server|
+				server.start_immediately = false
+			end
 		end
 		
 		def make_socket(io)

@@ -165,7 +165,14 @@ module IO::Endpoint
 				end
 				
 				async do
+					# Maybe we can expose this back to the endpoint?
+					socket.accept if socket.respond_to?(:accept)
+					
 					yield socket, address
+				rescue => error
+					socket.close
+					
+					raise
 				end
 			end
 		end
@@ -176,7 +183,7 @@ module IO::Endpoint
 			::Thread.new(&block)
 		end
 	end
-	
+	 
 	class FiberWrapper < Wrapper
 		def async(&block)
 			::Fiber.schedule(&block)
