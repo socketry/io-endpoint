@@ -183,7 +183,7 @@ module IO::Endpoint
 			::Thread.new(&block)
 		end
 	end
-	 
+	
 	class FiberWrapper < Wrapper
 		def async(&block)
 			::Fiber.schedule(&block)
