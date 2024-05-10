@@ -10,6 +10,14 @@ require 'openssl'
 
 module OpenSSL
 	module SSL
+		class SSLSocket
+			unless method_defined?(:start)
+				def start
+					self.accept
+				end
+			end
+		end
+		
 		module SocketForwarder
 			unless method_defined?(:close_on_exec=)
 				def close_on_exec=(value)
@@ -113,7 +121,9 @@ module IO::Endpoint
 		end
 		
 		def make_server(io)
-			::OpenSSL::SSL::SSLServer.new(io, self.context)
+			::OpenSSL::SSL::SSLServer.new(io, self.context).tap do |server|
+				server.start_immediately = false
+			end
 		end
 		
 		def make_socket(io)

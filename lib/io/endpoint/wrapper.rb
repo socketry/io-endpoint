@@ -165,6 +165,16 @@ module IO::Endpoint
 				end
 				
 				async do
+					# Some sockets, notably SSL sockets, need application level negotiation before they are ready:
+					if socket.respond_to?(:start)
+						begin
+							socket.start
+						rescue
+							socket.close
+							raise
+						end
+					end
+					
 					yield socket, address
 				end
 			end
