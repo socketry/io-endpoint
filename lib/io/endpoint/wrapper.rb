@@ -166,7 +166,7 @@ module IO::Endpoint
 				
 				async do
 					# Maybe we can expose this back to the endpoint?
-					socket.accept if socket.respond_to?(:accept)
+					socket.accept if socket.is_a?(::OpenSSL::SSL::SSLSocket)
 					
 					yield socket, address
 				rescue => error
