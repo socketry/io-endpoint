@@ -10,6 +10,14 @@ require 'openssl'
 
 module OpenSSL
 	module SSL
+		class SSLSocket
+			unless method_defined?(:start)
+				def start
+					self.accept
+				end
+			end
+		end
+		
 		module SocketForwarder
 			unless method_defined?(:close_on_exec=)
 				def close_on_exec=(value)
