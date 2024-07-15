@@ -17,9 +17,9 @@ group :maintenance, optional: true do
 end
 
 group :test do
-	gem "bake", "~> 0.19.0"
+	gem "sus"
 	gem "covered"
-	gem "sus", ">= 0.24.3"
+	gem "decode"
 	
 	gem "bake-test"
 	gem "bake-test-external"
