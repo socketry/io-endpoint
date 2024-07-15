@@ -10,7 +10,17 @@ module IO::Endpoint
 	class CompositeEndpoint < Generic
 		def initialize(endpoints, **options)
 			super(**options)
+			
+			# If any options were provided, propagate them to the endpoints:
+			if options.any?
+				endpoints = endpoints.map{|endpoint| endpoint.with(**options)}
+			end
+			
 			@endpoints = endpoints
+		end
+		
+		def with(**options)
+			self.class.new(endpoints.map{|endpoint| endpoint.with(**options)}, **@options.merge(options))
 		end
 		
 		attr :endpoints

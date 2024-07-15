@@ -57,4 +57,24 @@ describe IO::Endpoint::CompositeEndpoint do
 			expect(endpoint.endpoints).to be == [internal_endpoint]
 		end
 	end
+	
+	with "#with" do
+		it "can propagate options" do
+			updated_endpoint = endpoint.with(timeout: 10)
+			
+			# Did't change original:
+			expect(endpoint).to have_attributes(timeout: be_nil)
+			
+			endpoint.each do |endpoint|
+				expect(endpoint).to have_attributes(timeout: be_nil)
+			end
+			
+			# Changed copy:
+			expect(updated_endpoint).to have_attributes(timeout: be == 10)
+			
+			updated_endpoint.each do |endpoint|
+				expect(endpoint).to have_attributes(timeout: be == 10)
+			end
+		end
+	end
 end
