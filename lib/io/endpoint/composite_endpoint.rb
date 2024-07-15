@@ -13,6 +13,13 @@ module IO::Endpoint
 			@endpoints = endpoints
 		end
 		
+		attr :endpoints
+		
+		# The number of endpoints in the composite endpoint.
+		def size
+			@endpoints.size
+		end
+		
 		def each(&block)
 			@endpoints.each do |endpoint|
 				endpoint.each(&block)

@@ -45,4 +45,16 @@ describe IO::Endpoint::CompositeEndpoint do
 		servers&.each(&:close)
 		thread&.join
 	end
+	
+	with '#size' do
+		it "returns the number of endpoints" do
+			expect(endpoint.size).to be == 1
+		end
+	end
+	
+	with '#endpoints' do
+		it "returns the endpoints" do
+			expect(endpoint.endpoints).to be == [internal_endpoint]
+		end
+	end
 end
