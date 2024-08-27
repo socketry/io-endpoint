@@ -153,7 +153,8 @@ module IO::Endpoint
 		
 		# Bind to a local address and accept connections in a loop.
 		def accept(server, timeout: nil, linger: nil, **options, &block)
-			while true
+			# Ensure we use a `loop do ... end` so that state is not leaked between iterations:
+			loop do
 				socket, address = server.accept
 				
 				if linger
@@ -174,6 +175,9 @@ module IO::Endpoint
 							raise
 						end
 					end
+					
+					# It seems like OpenSSL doesn't return the address of the peer when using `accept`, so we need to get it from the socket:
+					address ||= socket.remote_address
 					
 					yield socket, address
 				end
