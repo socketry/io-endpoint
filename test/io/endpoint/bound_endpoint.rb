@@ -53,7 +53,7 @@ describe IO::Endpoint::BoundEndpoint do
 		thread = Thread.new do
 			Thread.current.report_on_exception = false
 			
-			while true
+			loop do
 				peer, address = server.accept
 				peer.close
 			end
@@ -74,7 +74,7 @@ describe IO::Endpoint::BoundEndpoint do
 		
 		expect do
 			thread.join
-		end.to raise_exception(IOError, message: be =~ /stream closed/)
+		end.to raise_exception(IOError, message: be =~ /stream closed in another thread/)
 	end
 	
 	with "timeouts" do
