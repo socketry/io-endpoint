@@ -41,6 +41,10 @@ describe IO::Endpoint::UNIXEndpoint do
 		
 		expect(endpoint).to be(:bound?)
 		
+		# Wait for the server to start accepting connections:
+		# I noticed on slow CI, that the connect would fail because the server has not called `#accept` yet, even if it's bound and listening!
+		Thread.pass until thread.status == "sleep"
+		
 		endpoint.connect do |socket|
 			expect(socket).to be_a(Socket)
 			
@@ -52,6 +56,18 @@ describe IO::Endpoint::UNIXEndpoint do
 	ensure
 		thread&.kill
 		sockets&.each(&:close)
+	end
+	
+	with "#to_s" do
+		it "can generate a string representation" do
+			expect(endpoint.to_s).to be =~ /unix:.*test\.ipc/
+		end
+	end
+
+	with "#inspect" do
+		it "can generate a string representation" do
+			expect(endpoint.inspect).to be =~ /#<IO::Endpoint::UNIXEndpoint path=.*test\.ipc/
+		end
 	end
 end
 

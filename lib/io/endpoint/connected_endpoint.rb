@@ -57,6 +57,10 @@ module IO::Endpoint
 		end
 		
 		def to_s
+			"connected:#{@endpoint}"
+		end
+		
+		def inspect
 			"\#<#{self.class} #{@socket} connected for #{@endpoint}>"
 		end
 	end

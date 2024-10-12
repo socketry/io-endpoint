@@ -16,7 +16,11 @@ module IO::Endpoint
 		end
 		
 		def to_s
-			"\#<#{self.class} #{@path.inspect}>"
+			"unix:#{@path}"
+		end
+		
+		def inspect
+			"\#<#{self.class} path=#{@path.inspect}>"
 		end
 		
 		attr :path

@@ -15,6 +15,10 @@ module IO::Endpoint
 		end
 		
 		def to_s
+			"socket:#{@socket}"
+		end
+		
+		def inspect
 			"\#<#{self.class} #{@socket.inspect}>"
 		end
 		

@@ -43,7 +43,13 @@ describe IO::Endpoint::AddressEndpoint do
 	
 	with "#to_s" do
 		it "can generate a string representation" do
-			expect(endpoint.to_s).to be =~ /#<IO::Endpoint::AddressEndpoint address=/
+			expect(endpoint.to_s).to be =~ /inet(6):/
+		end
+	end
+	
+	with "#inspect" do
+		it "can generate a string representation" do
+			expect(endpoint.inspect).to be =~ /#<IO::Endpoint::AddressEndpoint address=/
 		end
 	end
 end

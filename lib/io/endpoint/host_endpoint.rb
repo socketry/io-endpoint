@@ -14,6 +14,10 @@ module IO::Endpoint
 		end
 		
 		def to_s
+			"host:#{@specification[0]}:#{@specification[1]}"
+		end
+		
+		def inspect
 			nodename, service, family, socktype, protocol, flags = @specification
 			
 			"\#<#{self.class} name=#{nodename.inspect} service=#{service.inspect} family=#{family.inspect} type=#{socktype.inspect} protocol=#{protocol.inspect} flags=#{flags.inspect}>"

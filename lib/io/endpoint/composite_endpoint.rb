@@ -19,6 +19,14 @@ module IO::Endpoint
 			@endpoints = endpoints
 		end
 		
+		def to_s
+			"composite:#{@endpoints.join(",")}"
+		end
+		
+		def inspect
+			"\#<#{self.class} endpoints=#{@endpoints}>"
+		end
+		
 		def with(**options)
 			self.class.new(endpoints.map{|endpoint| endpoint.with(**options)}, **@options.merge(options))
 		end

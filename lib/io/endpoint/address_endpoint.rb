@@ -17,6 +17,17 @@ module IO::Endpoint
 		end
 		
 		def to_s
+			case @address.afamily
+			when Socket::AF_INET
+				"inet:#{@address.inspect_sockaddr}"
+			when Socket::AF_INET6
+				"inet6:#{@address.inspect_sockaddr}"
+			else
+				"address:#{@address.inspect_sockaddr}"
+			end
+		end
+		
+		def inspect
 			"\#<#{self.class} address=#{@address.inspect}>"
 		end
 		

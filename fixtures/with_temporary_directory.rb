@@ -8,10 +8,12 @@ require 'tmpdir'
 module WithTemporaryDirectory
 	attr :temporary_directory
 	
-	def around
+	def around(&block)
 		Dir.mktmpdir do |temporary_directory|
 			@temporary_directory = temporary_directory
-			yield
+			super(&block)
+		ensure
+			@temporary_directory = nil
 		end
 	end
 end

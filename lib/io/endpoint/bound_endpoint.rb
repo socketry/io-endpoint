@@ -55,6 +55,10 @@ module IO::Endpoint
 		end
 		
 		def to_s
+			"bound:#{@endpoint}"
+		end
+		
+		def inspect
 			"\#<#{self.class} #{@sockets.size} bound sockets for #{@endpoint}>"
 		end
 		

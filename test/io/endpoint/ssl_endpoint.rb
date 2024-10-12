@@ -87,4 +87,20 @@ describe IO::Endpoint::SSLEndpoint do
 			bound&.close
 		end
 	end
+	
+	with "a simple SSL endpoint" do
+		let(:endpoint) {subject.new(IO::Endpoint.tcp("localhost", 0))}
+		
+		with "#to_s" do
+			it "can generate a string representation" do
+				expect(endpoint.to_s).to be =~ /ssl:/
+			end
+		end
+
+		with "#inspect" do
+			it "can generate a string representation" do
+				expect(endpoint.inspect).to be =~ /#<IO::Endpoint::SSLEndpoint endpoint=/
+			end
+		end
+	end
 end

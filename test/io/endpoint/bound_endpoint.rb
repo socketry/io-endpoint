@@ -115,4 +115,24 @@ describe IO::Endpoint::BoundEndpoint do
 			connected_endpoint&.close
 		end
 	end
+	
+	with "a bound instance" do
+		let(:endpoint) {subject.bound(internal_endpoint)}
+		
+		after do
+			@endpoint&.close
+		end
+		
+		with "#to_s" do
+			it "can generate a string representation" do
+				expect(endpoint.to_s).to be =~ /bound:/
+			end
+		end
+
+		with "#inspect" do
+			it "can generate a string representation" do
+				expect(endpoint.inspect).to be =~ /#<IO::Endpoint::BoundEndpoint 1 bound sockets/
+			end
+		end
+	end
 end

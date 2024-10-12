@@ -42,9 +42,9 @@ describe IO::Endpoint::HostEndpoint do
 		bound&.close
 	end
 	
-	with "#to_s" do
+	with "#inspect" do
 		it "can generate a string representation" do
-			expect(endpoint.to_s).to be == "#<IO::Endpoint::HostEndpoint name=\"localhost\" service=0 family=nil type=1 protocol=nil flags=nil>"
+			expect(endpoint.inspect).to be == "#<IO::Endpoint::HostEndpoint name=\"localhost\" service=0 family=nil type=1 protocol=nil flags=nil>"
 		end
 	end
 end

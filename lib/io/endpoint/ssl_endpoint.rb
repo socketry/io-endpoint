@@ -87,7 +87,11 @@ module IO::Endpoint
 		end
 		
 		def to_s
-			"\#<#{self.class} #{@endpoint}>"
+			"ssl:#{@endpoint}"
+		end
+		
+		def inspect
+			"\#<#{self.class} endpoint=#{@endpoint.inspect}>"
 		end
 		
 		def address
