@@ -9,6 +9,20 @@ module IO::Endpoint
 	class Wrapper
 		include ::Socket::Constants
 		
+		if Fiber.respond_to?(:scheduler)
+			def schedule(&block)
+				if Fiber.scheduler
+					Fiber.schedule(&block)
+				else
+					Thread.new(&block)
+				end
+			end
+		else
+			def schedule(&block)
+				Thread.new(&block)
+			end
+		end
+		
 		def set_timeout(io, timeout)
 			if io.respond_to?(:timeout=)
 				io.timeout = timeout
@@ -30,8 +44,13 @@ module IO::Endpoint
 			# It may not be supported by the protocol (e.g. UDP). ¯\_(ツ)_/¯
 		end
 		
-		def async
-			raise NotImplementedError
+		# Connect a socket to a remote address.
+		# This is an extension point for subclasses to provide additional functionality.
+		#
+		# @parameter socket [Socket] The socket to connect.
+		# @parameter remote_address [Address] The remote address to connect to.
+		def socket_connect(socket, remote_address)
+			socket.connect(remote_address.to_sockaddr)
 		end
 		
 		# Establish a connection to a given `remote_address`.
@@ -72,7 +91,7 @@ module IO::Endpoint
 			end
 			
 			begin
-				socket.connect(remote_address.to_sockaddr)
+				socket_connect(socket, remote_address)
 			rescue Exception
 				socket.close
 				raise
@@ -142,7 +161,7 @@ module IO::Endpoint
 			
 			return socket unless block_given?
 			
-			async do
+			schedule do
 				begin
 					yield socket
 				ensure
@@ -151,11 +170,21 @@ module IO::Endpoint
 			end
 		end
 		
+		# Accept a connection from a bound socket.
+		# This is an extension point for subclasses to provide additional functionality.
+		#
+		# @parameter server [Socket] The bound server socket.
+		# @returns [Tuple(Socket, Address)] The connected socket and the remote address.
+		def socket_accept(server)
+			server.accept
+		end
+		
 		# Bind to a local address and accept connections in a loop.
 		def accept(server, timeout: nil, linger: nil, **options, &block)
 			# Ensure we use a `loop do ... end` so that state is not leaked between iterations:
+			
 			loop do
-				socket, address = server.accept
+				socket, address = socket_accept(server)
 				
 				if linger
 					socket.setsockopt(SOL_SOCKET, SO_LINGER, 1)
@@ -165,7 +194,7 @@ module IO::Endpoint
 					set_timeout(socket, timeout)
 				end
 				
-				async do
+				schedule do
 					# Some sockets, notably SSL sockets, need application level negotiation before they are ready:
 					if socket.respond_to?(:start)
 						begin
@@ -183,31 +212,11 @@ module IO::Endpoint
 				end
 			end
 		end
-	end
-	
-	class ThreadWrapper < Wrapper
-		def async(&block)
-			::Thread.new(&block)
-		end
-	end
-	
-	class FiberWrapper < Wrapper
-		def async(&block)
-			::Fiber.schedule(&block)
-		end
-	end
-	
-	if Fiber.respond_to?(:scheduler)
-		def Wrapper.default
-			if Fiber.scheduler
-				FiberWrapper.new
-			else
-				ThreadWrapper.new
-			end
-		end
-	else
-		def Wrapper.default
-			ThreadWrapper.new
+		
+		DEFAULT = new
+		
+		def self.default
+			DEFAULT
 		end
 	end
 end
