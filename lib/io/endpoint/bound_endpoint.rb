@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2024, by Samuel Williams.
+# Copyright, 2024-2025, by Samuel Williams.
 
-require_relative 'generic'
-require_relative 'composite_endpoint'
-require_relative 'address_endpoint'
+require_relative "generic"
+require_relative "composite_endpoint"
+require_relative "address_endpoint"
 
 module IO::Endpoint
 	class BoundEndpoint < Generic

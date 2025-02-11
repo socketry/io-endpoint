@@ -3,10 +3,10 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require_relative 'host_endpoint'
-require_relative 'generic'
+require_relative "host_endpoint"
+require_relative "generic"
 
-require 'openssl'
+require "openssl"
 
 module OpenSSL
 	module SSL

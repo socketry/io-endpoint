@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023, by Samuel Williams.
+# Copyright, 2023-2024, by Samuel Williams.
 
-require_relative 'address_endpoint'
+require_relative "address_endpoint"
 
 module IO::Endpoint
 	# This class doesn't exert ownership over the specified unix socket and ensures exclusive access by using `flock` where possible.

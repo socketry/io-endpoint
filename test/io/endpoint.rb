@@ -3,7 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'io/endpoint'
+require "io/endpoint"
 
 describe IO::Endpoint do
 	with ".file_descriptor_limit" do

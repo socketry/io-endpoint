@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023-2024, by Samuel Williams.
+# Copyright, 2023-2025, by Samuel Williams.
 
-require_relative 'generic'
+require_relative "generic"
 
 module IO::Endpoint
 	# A composite endpoint is a collection of endpoints that are used in order.

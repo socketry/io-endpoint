@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023, by Samuel Williams.
+# Copyright, 2023-2024, by Samuel Williams.
 
-require 'io/endpoint/composite_endpoint'
-require 'io/endpoint/unix_endpoint'
-require 'with_temporary_directory'
+require "io/endpoint/composite_endpoint"
+require "io/endpoint/unix_endpoint"
+require "with_temporary_directory"
 
 describe IO::Endpoint::CompositeEndpoint do
 	include WithTemporaryDirectory
 	
 	let(:path) {File.join(temporary_directory, "test.ipc")}
 	let(:internal_endpoint) {IO::Endpoint::UNIXEndpoint.new(path)}
- 	let(:endpoint) {subject.new([internal_endpoint])}
+	let(:endpoint) {subject.new([internal_endpoint])}
 	
 	it "can bind to address" do
 		endpoint.bind do |socket|
@@ -46,13 +46,13 @@ describe IO::Endpoint::CompositeEndpoint do
 		thread&.join
 	end
 	
-	with '#size' do
+	with "#size" do
 		it "returns the number of endpoints" do
 			expect(endpoint.size).to be == 1
 		end
 	end
 	
-	with '#endpoints' do
+	with "#endpoints" do
 		it "returns the endpoints" do
 			expect(endpoint.endpoints).to be == [internal_endpoint]
 		end

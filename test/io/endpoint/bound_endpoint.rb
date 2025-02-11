@@ -3,10 +3,10 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require 'io/endpoint/bound_endpoint'
-require 'io/endpoint/connected_endpoint'
-require 'io/endpoint/unix_endpoint'
-require 'with_temporary_directory'
+require "io/endpoint/bound_endpoint"
+require "io/endpoint/connected_endpoint"
+require "io/endpoint/unix_endpoint"
+require "with_temporary_directory"
 
 describe IO::Endpoint::BoundEndpoint do
 	include WithTemporaryDirectory

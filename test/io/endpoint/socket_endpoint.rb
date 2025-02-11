@@ -3,8 +3,8 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require 'io/endpoint/socket_endpoint'
-require 'with_temporary_directory'
+require "io/endpoint/socket_endpoint"
+require "with_temporary_directory"
 
 describe IO::Endpoint::SocketEndpoint do
 	include WithTemporaryDirectory

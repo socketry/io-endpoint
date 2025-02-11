@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2024, by Samuel Williams.
+# Copyright, 2024-2025, by Samuel Williams.
 
-require_relative 'generic'
-require_relative 'composite_endpoint'
-require_relative 'socket_endpoint'
+require_relative "generic"
+require_relative "composite_endpoint"
+require_relative "socket_endpoint"
 
-require 'openssl'
+require "openssl"
 
 module IO::Endpoint
 	class ConnectedEndpoint < Generic

@@ -3,9 +3,9 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require 'io/endpoint/ssl_endpoint'
-require 'io/endpoint/shared_endpoint'
-require 'sus/fixtures/openssl'
+require "io/endpoint/ssl_endpoint"
+require "io/endpoint/shared_endpoint"
+require "sus/fixtures/openssl"
 
 describe IO::Endpoint::SSLEndpoint do
 	with "valid certificates" do

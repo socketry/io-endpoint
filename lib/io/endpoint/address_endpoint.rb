@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023, by Samuel Williams.
+# Copyright, 2023-2025, by Samuel Williams.
 
-require 'socket'
+require "socket"
 
-require_relative 'generic'
-require_relative 'wrapper'
+require_relative "generic"
+require_relative "wrapper"
 
 module IO::Endpoint
 	class AddressEndpoint < Generic

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023, by Samuel Williams.
+# Copyright, 2023-2024, by Samuel Williams.
 
-require 'io/endpoint/host_endpoint'
-require 'io/endpoint/shared_endpoint'
+require "io/endpoint/host_endpoint"
+require "io/endpoint/shared_endpoint"
 
 describe IO::Endpoint::HostEndpoint do
 	let(:specification) {["localhost", 0, nil, ::Socket::SOCK_STREAM]}
@@ -50,7 +50,7 @@ describe IO::Endpoint::HostEndpoint do
 end
 
 describe IO::Endpoint do
-	with '.udp' do
+	with ".udp" do
 		let(:endpoint) {subject.udp("localhost", 0)}
 		
 		it "can construct endpoint from path" do
@@ -59,7 +59,7 @@ describe IO::Endpoint do
 		end
 	end
 	
-	with '.tcp' do
+	with ".tcp" do
 		let(:endpoint) {subject.tcp("localhost", 0)}
 		
 		it "can construct endpoint from path" do

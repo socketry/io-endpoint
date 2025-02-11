@@ -3,10 +3,10 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require 'io/endpoint/unix_endpoint'
-require 'with_temporary_directory'
-require 'sus/fixtures/async/reactor_context'
-require 'async/variable'
+require "io/endpoint/unix_endpoint"
+require "with_temporary_directory"
+require "sus/fixtures/async/reactor_context"
+require "async/variable"
 
 describe IO::Endpoint::UNIXEndpoint do
 	include WithTemporaryDirectory
@@ -74,7 +74,7 @@ end
 describe IO::Endpoint do
 	let(:endpoint) {subject.unix("/tmp/test.ipc", Socket::SOCK_DGRAM)}
 	
-	with '.unix' do
+	with ".unix" do
 		it "can construct endpoint from path" do
 			expect(endpoint).to be_a(IO::Endpoint::UNIXEndpoint)
 			expect(endpoint).to have_attributes(path: be == "/tmp/test.ipc")

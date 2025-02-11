@@ -3,8 +3,8 @@
 # Released under the MIT License.
 # Copyright, 2023, by Samuel Williams.
 
-require 'io/endpoint'
-require 'io/endpoint/host_endpoint'
+require "io/endpoint"
+require "io/endpoint/host_endpoint"
 
 describe IO::Endpoint::Generic do
 	let(:options) {Hash.new}
