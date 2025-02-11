@@ -6,9 +6,13 @@
 require 'io/endpoint/wrapper'
 
 describe IO::Endpoint::Wrapper do
-	it "does not implement a default async method" do
-		expect do
-			subject.new.async{}
-		end.to raise_exception(NotImplementedError)
+	it "implements a default schedule method" do
+		queue = ::Thread::Queue.new
+		
+		subject.new.schedule do
+			queue << :scheduled
+		end
+		
+		expect(queue.pop).to be == :scheduled
 	end
 end

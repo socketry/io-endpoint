@@ -64,21 +64,21 @@ module IO::Endpoint
 		# @yields {|socket| ...}	An optional block which will be passed the socket.
 		#   @parameter socket [Socket] The socket which has been bound.
 		# @returns [Array(Socket)] the bound socket
-		def bind(wrapper = Wrapper.default, &block)
+		def bind(wrapper = self.wrapper, &block)
 			raise NotImplementedError
 		end
 		
 		# Connects a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
 		# @parameter wrapper [Wrapper] The wrapper to use for connecting.
 		# @return [Socket] the connected socket
-		def connect(wrapper = Wrapper.default, &block)
+		def connect(wrapper = self.wrapper, &block)
 			raise NotImplementedError
 		end
 		
 		# Bind and accept connections on the given address.
 		# @parameter wrapper [Wrapper] The wrapper to use for accepting connections.
 		# @yields [Socket] The accepted socket.
-		def accept(wrapper = Wrapper.default, &block)
+		def accept(wrapper = self.wrapper, &block)
 			bind(wrapper) do |server|
 				wrapper.accept(server, **@options, &block)
 			end
@@ -108,6 +108,11 @@ module IO::Endpoint
 			uri = URI.parse(string)
 			
 			IO::Endpoint.public_send(uri.scheme, uri.host, uri.port, **options)
+		end
+		
+		# The default wrapper to use for binding, connecting, and accepting connections.
+		def wrapper
+			@options[:wrapper] || Wrapper.default
 		end
 	end
 end

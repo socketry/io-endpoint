@@ -41,7 +41,7 @@ module IO::Endpoint
 			AddressEndpoint.new(socket.to_io.remote_address, **options)
 		end
 		
-		def connect(wrapper = Wrapper.default, &block)
+		def connect(wrapper = self.wrapper, &block)
 			if block_given?
 				yield @socket
 			else

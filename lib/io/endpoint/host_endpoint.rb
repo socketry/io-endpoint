@@ -38,7 +38,7 @@ module IO::Endpoint
 		# @yield [Socket] the socket which is being connected, may be invoked more than once
 		# @return [Socket] the connected socket
 		# @raise if no connection could complete successfully
-		def connect(wrapper = Wrapper.default, &block)
+		def connect(wrapper = self.wrapper, &block)
 			last_error = nil
 			
 			Addrinfo.foreach(*@specification) do |address|
@@ -63,7 +63,7 @@ module IO::Endpoint
 		# Invokes the given block for every address which can be bound to.
 		# @yield [Socket] the bound socket
 		# @return [Array<Socket>] an array of bound sockets
-		def bind(wrapper = Wrapper.default, &block)
+		def bind(wrapper = self.wrapper, &block)
 			Addrinfo.foreach(*@specification).map do |address|
 				wrapper.bind(address, **@options, &block)
 			end

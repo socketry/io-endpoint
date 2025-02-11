@@ -62,7 +62,7 @@ module IO::Endpoint
 			"\#<#{self.class} #{@sockets.size} bound sockets for #{@endpoint}>"
 		end
 		
-		def bind(wrapper = Wrapper.default, &block)
+		def bind(wrapper = self.wrapper, &block)
 			@sockets.map do |server|
 				if block_given?
 					wrapper.schedule do

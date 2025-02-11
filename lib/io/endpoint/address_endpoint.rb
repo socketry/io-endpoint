@@ -37,13 +37,13 @@ module IO::Endpoint
 		# @yield {|socket| ...}	An optional block which will be passed the socket.
 		#   @parameter socket [Socket] The socket which has been bound.
 		# @return [Array(Socket)] the bound socket
-		def bind(wrapper = Wrapper.default, &block)
+		def bind(wrapper = self.wrapper, &block)
 			[wrapper.bind(@address, **@options, &block)]
 		end
 		
 		# Connects a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
 		# @return [Socket] the connected socket
-		def connect(wrapper = Wrapper.default, &block)
+		def connect(wrapper = self.wrapper, &block)
 			wrapper.connect(@address, **@options, &block)
 		end
 	end
