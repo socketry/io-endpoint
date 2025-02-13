@@ -23,6 +23,11 @@ module IO::Endpoint
 			end
 		end
 		
+		# Legacy method for compatibility with older code.
+		def async(&block)
+			schedule(&block)
+		end
+		
 		def set_timeout(io, timeout)
 			if io.respond_to?(:timeout=)
 				io.timeout = timeout
