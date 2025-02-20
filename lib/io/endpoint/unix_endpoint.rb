@@ -35,7 +35,7 @@ module IO::Endpoint
 			return false
 		end
 		
-		def bind(&block)
+		def bind(...)
 			super
 		rescue Errno::EADDRINUSE
 			# If you encounter EADDRINUSE from `bind()`, you can check if the socket is actually accepting connections by attempting to `connect()` to it. If the socket is still bound by an active process, the connection will succeed. Otherwise, it should be safe to `unlink()` the path and try again.
