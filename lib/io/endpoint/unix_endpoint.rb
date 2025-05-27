@@ -9,8 +9,15 @@ module IO::Endpoint
 	# This class doesn't exert ownership over the specified unix socket and ensures exclusive access by using `flock` where possible.
 	class UNIXEndpoint < AddressEndpoint
 		def initialize(path, type = Socket::SOCK_STREAM, **options)
-			# I wonder if we should implement chdir behaviour in here if path is longer than 104 characters.
-			super(Address.unix(path, type), **options)
+			# If the path is longer than 104 bytes, we need to change directory to the parent directory of the socket.
+			# String#bytesize does not count the null terminator, for safety we only allow paths up to 103 bytes.
+			if path.bytesize < 104
+				super(Address.unix(path, type), **options)
+			else
+				Dir.chdir(File.dirname(path)) do
+					super(Address.unix(File.basename(path), type), **options)
+				end
+			end
 			
 			@path = path
 		end
