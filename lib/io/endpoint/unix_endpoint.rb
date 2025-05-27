@@ -13,7 +13,7 @@ module IO::Endpoint
 		# @parameter type [Integer] The socket type (defaults to Socket::SOCK_STREAM).
 		# @parameter options [Hash] Additional options to pass to the parent class.
 		def initialize(path, type = Socket::SOCK_STREAM, **options)
-			# If the path is longer than 104 characters, we need to change directory to the parent directory of the socket.
+			# If the path is longer than 104 bytes, we need to change directory to the parent directory of the socket.
 			if path.bytesize <= 104
 				super(Address.unix(path, type), **options)
 			else
