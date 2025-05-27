@@ -18,7 +18,6 @@ module IO::Endpoint
 			if path.bytesize < 104
 				super(Address.unix(path, type), **options)
 			else
-				path = File.expand_path(path) # make sure the path is absolute
 				Dir.chdir(File.dirname(path)) do
 					super(Address.unix(File.basename(path), type), **options)
 				end
