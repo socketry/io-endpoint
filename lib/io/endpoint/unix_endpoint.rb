@@ -14,7 +14,8 @@ module IO::Endpoint
 		# @parameter options [Hash] Additional options to pass to the parent class.
 		def initialize(path, type = Socket::SOCK_STREAM, **options)
 			# If the path is longer than 104 bytes, we need to change directory to the parent directory of the socket.
-			if path.bytesize <= 104
+			# String#bytesize does not count the null terminator, for safety we only allow paths up to 103 bytes.
+			if path.bytesize < 104
 				super(Address.unix(path, type), **options)
 			else
 				path = File.expand_path(path) # make sure the path is absolute
