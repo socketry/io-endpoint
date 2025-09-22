@@ -157,6 +157,13 @@ module IO::Endpoint
 						socket.listen(backlog)
 					rescue Errno::EOPNOTSUPP
 						# Ignore.
+					rescue Errno::EACCES
+						# Unfortunately, in some environments, the error gets translated to "permission denied" instead.
+						if local_address.socktype == ServerSocket::SOCK_DGRAM
+							# Ignore
+						else
+							raise
+						end
 					end
 				end
 			rescue
