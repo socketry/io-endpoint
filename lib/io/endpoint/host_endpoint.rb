@@ -44,7 +44,7 @@ module IO::Endpoint
 			Addrinfo.foreach(*@specification) do |address|
 				begin
 					socket = wrapper.connect(address, **@options)
-				rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, Errno::EAGAIN => last_error
+				rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, Errno::EHOSTUNREACH, Errno::EAGAIN => last_error
 					# Try again unless if possible, otherwise raise...
 				else
 					return socket unless block_given?
