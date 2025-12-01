@@ -47,6 +47,106 @@ describe IO::Endpoint::HostEndpoint do
 			expect(endpoint.inspect).to be == "#<IO::Endpoint::HostEndpoint name=\"localhost\" service=0 family=nil type=1 protocol=nil flags=nil>"
 		end
 	end
+	
+	with "Happy Eyeballs" do
+		it "can connect using Happy Eyeballs algorithm" do
+			bound = endpoint.bound
+			
+			bound.bind do |server|
+				expect(server).to be_a(Socket)
+				
+				thread = Thread.new do
+					peer, address = server.accept
+					peer.close
+				end
+				
+				# Wait for server to be ready
+				Thread.pass until thread.status == "sleep"
+				
+				server_endpoint = subject.new(["localhost", server.local_address.ip_port, nil, ::Socket::SOCK_STREAM])
+				
+				client = server_endpoint.connect
+				expect(client).to be_a(Socket)
+				
+				# Wait for the connection to be closed
+				client.wait_readable
+				client.close
+				
+				thread.join
+			end
+		ensure
+			bound&.close
+		end
+		
+		it "raises error when all connections fail" do
+			# Try to connect to a port that's definitely not listening
+			endpoint = subject.new(["localhost", 65535, nil, ::Socket::SOCK_STREAM])
+			
+			expect do
+				endpoint.connect
+			end.to raise_exception(Errno::ECONNREFUSED)
+		end
+		
+		it "respects happy_eyeballs_delay option" do
+			bound = endpoint.bound
+			
+			bound.bind do |server|
+				expect(server).to be_a(Socket)
+				
+				thread = Thread.new do
+					peer, address = server.accept
+					peer.close
+				end
+				
+				Thread.pass until thread.status == "sleep"
+				
+				server_endpoint = subject.new(["localhost", server.local_address.ip_port, nil, ::Socket::SOCK_STREAM], happy_eyeballs_delay: 0.1)
+				
+				start_time = Time.now
+				client = server_endpoint.connect
+				elapsed = Time.now - start_time
+				
+				# Connection should succeed quickly (before the delay)
+				expect(elapsed).to be < 0.1
+				expect(client).to be_a(Socket)
+				
+				client.close
+				thread.join
+			end
+		ensure
+			bound&.close
+		end
+		
+		it "can override happy_eyeballs_delay per connection" do
+			bound = endpoint.bound
+			
+			bound.bind do |server|
+				expect(server).to be_a(Socket)
+				
+				thread = Thread.new do
+					peer, address = server.accept
+					peer.close
+				end
+				
+				Thread.pass until thread.status == "sleep"
+				
+				server_endpoint = subject.new(["localhost", server.local_address.ip_port, nil, ::Socket::SOCK_STREAM], happy_eyeballs_delay: 0.2)
+				
+				start_time = Time.now
+				client = server_endpoint.connect(happy_eyeballs_delay: 0.01)
+				elapsed = Time.now - start_time
+				
+				# Connection should succeed quickly (using the override delay)
+				expect(elapsed).to be < 0.1
+				expect(client).to be_a(Socket)
+				
+				client.close
+				thread.join
+			end
+		ensure
+			bound&.close
+		end
+	end
 end
 
 describe IO::Endpoint do
