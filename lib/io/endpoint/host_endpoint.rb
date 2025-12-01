@@ -88,7 +88,7 @@ module IO::Endpoint
 		
 		HostEndpoint.new(arguments, **options)
 	end
-
+	
 	# @param arguments nodename, service, family, socktype, protocol, flags. `socktype` will be set to Socket::SOCK_DGRAM.
 	# @param options keyword arguments passed on to {HostEndpoint#initialize}
 	#

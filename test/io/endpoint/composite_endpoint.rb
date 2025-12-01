@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023-2024, by Samuel Williams.
+# Copyright, 2023-2025, by Samuel Williams.
 
 require "io/endpoint/composite_endpoint"
 require "io/endpoint/unix_endpoint"
@@ -83,7 +83,7 @@ describe IO::Endpoint::CompositeEndpoint do
 			expect(endpoint.to_s).to be =~ /composite:/
 		end
 	end
-
+	
 	with "#inspect" do
 		it "can generate a string representation" do
 			expect(endpoint.inspect).to be =~ /#<IO::Endpoint::CompositeEndpoint endpoints=/

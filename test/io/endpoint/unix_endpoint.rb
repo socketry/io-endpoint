@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023-2024, by Samuel Williams.
+# Copyright, 2023-2025, by Samuel Williams.
 
 require "io/endpoint/unix_endpoint"
 require "with_temporary_directory"
@@ -63,7 +63,7 @@ describe IO::Endpoint::UNIXEndpoint do
 			expect(endpoint.to_s).to be =~ /unix:.*test\.ipc/
 		end
 	end
-
+	
 	with "#inspect" do
 		it "can generate a string representation" do
 			expect(endpoint.inspect).to be =~ /#<IO::Endpoint::UNIXEndpoint path=.*test\.ipc/
@@ -79,7 +79,7 @@ describe IO::Endpoint do
 			expect(endpoint).to be_a(IO::Endpoint::UNIXEndpoint)
 			expect(endpoint).to have_attributes(path: be == "/tmp/test.ipc")
 		end
-
+		
 		with "a simple UDP server" do
 			include Sus::Fixtures::Async::ReactorContext
 			

@@ -64,7 +64,7 @@ module IO::Endpoint
 			"\#<#{self.class} #{@socket} connected for #{@endpoint}>"
 		end
 	end
-		
+	
 	class Generic
 		def connected(**options)
 			ConnectedEndpoint.connected(self, **options)

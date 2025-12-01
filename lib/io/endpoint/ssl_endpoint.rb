@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023-2024, by Samuel Williams.
+# Copyright, 2023-2025, by Samuel Williams.
 
 require_relative "host_endpoint"
 require_relative "generic"
@@ -170,7 +170,7 @@ module IO::Endpoint
 			end
 			
 			return socket unless block_given?
-				
+			
 			begin
 				yield socket
 			ensure
@@ -186,7 +186,7 @@ module IO::Endpoint
 			end
 		end
 	end
-
+	
 	# @param arguments
 	# @param ssl_context [OpenSSL::SSL::SSLContext, nil]
 	# @param hostname [String, nil]

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023-2024, by Samuel Williams.
+# Copyright, 2023-2025, by Samuel Williams.
 
 require "io/endpoint/bound_endpoint"
 require "io/endpoint/connected_endpoint"
@@ -128,7 +128,7 @@ describe IO::Endpoint::BoundEndpoint do
 				expect(endpoint.to_s).to be =~ /bound:/
 			end
 		end
-
+		
 		with "#inspect" do
 			it "can generate a string representation" do
 				expect(endpoint.inspect).to be =~ /#<IO::Endpoint::BoundEndpoint 1 bound sockets/
