@@ -6,10 +6,15 @@
 require "socket"
 
 module IO::Endpoint
+	# Represents a wrapper for socket operations that provides scheduling and configuration.
 	class Wrapper
 		include ::Socket::Constants
 		
 		if Fiber.respond_to?(:scheduler)
+			# Schedule a block to run asynchronously.
+			# Uses Fiber scheduler if available, otherwise falls back to Thread.
+			# @yields { ...} The block to schedule.
+			# @returns [Fiber, Thread] The scheduled fiber or thread.
 			def schedule(&block)
 				if Fiber.scheduler
 					Fiber.schedule(&block)
@@ -18,6 +23,10 @@ module IO::Endpoint
 				end
 			end
 		else
+			# Schedule a block to run asynchronously.
+			# Uses Thread for scheduling.
+			# @yields { ...} The block to schedule.
+			# @returns [Thread] The scheduled thread.
 			def schedule(&block)
 				Thread.new(&block)
 			end
@@ -28,12 +37,18 @@ module IO::Endpoint
 			schedule(&block)
 		end
 		
+		# Set the timeout for an IO object.
+		# @parameter io [IO] The IO object to set timeout on.
+		# @parameter timeout [Numeric, nil] The timeout value.
 		def set_timeout(io, timeout)
 			if io.respond_to?(:timeout=)
 				io.timeout = timeout
 			end
 		end
 		
+		# Set whether a socket should be buffered.
+		# @parameter socket [Socket] The socket to configure.
+		# @parameter buffered [Boolean] Whether the socket should be buffered.
 		def set_buffered(socket, buffered)
 			case buffered
 			when true
@@ -220,6 +235,8 @@ module IO::Endpoint
 		
 		DEFAULT = new
 		
+		# Get the default wrapper instance.
+		# @returns [Wrapper] The default wrapper instance.
 		def self.default
 			DEFAULT
 		end

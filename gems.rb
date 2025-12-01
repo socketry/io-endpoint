@@ -13,6 +13,8 @@ group :maintenance, optional: true do
 	gem "bake-modernize"
 	gem "bake-gem"
 	
+	gem "agent-context"
+	
 	gem "utopia-project" #, path: "../utopia-project"
 end
 

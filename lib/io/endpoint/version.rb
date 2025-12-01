@@ -3,7 +3,9 @@
 # Released under the MIT License.
 # Copyright, 2023-2025, by Samuel Williams.
 
+# @namespace
 class IO
+	# @namespace
 	module Endpoint
 		VERSION = "0.15.2"
 	end

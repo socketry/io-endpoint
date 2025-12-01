@@ -9,13 +9,19 @@ require_relative "generic"
 require_relative "wrapper"
 
 module IO::Endpoint
+	# Represents an endpoint for a specific network address.
 	class AddressEndpoint < Generic
+		# Initialize a new address endpoint.
+		# @parameter address [Address] The network address for this endpoint.
+		# @parameter options [Hash] Additional options to pass to the parent class.
 		def initialize(address, **options)
 			super(**options)
 			
 			@address = address
 		end
 		
+		# Get a string representation of the endpoint.
+		# @returns [String] A string representation of the endpoint address.
 		def to_s
 			case @address.afamily
 			when Socket::AF_INET
@@ -27,22 +33,25 @@ module IO::Endpoint
 			end
 		end
 		
+		# Get a detailed string representation of the endpoint.
+		# @returns [String] A detailed string representation including the address.
 		def inspect
 			"\#<#{self.class} address=#{@address.inspect}>"
 		end
 		
+		# @attribute [Address] The network address for this endpoint.
 		attr :address
 		
 		# Bind a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
-		# @yield {|socket| ...}	An optional block which will be passed the socket.
-		#   @parameter socket [Socket] The socket which has been bound.
-		# @return [Array(Socket)] the bound socket
+		# @yields {|socket| ...} If a block is given, yields the bound socket.
+		# 	@parameter socket [Socket] The socket which has been bound.
+		# @returns [Array(Socket)] the bound socket
 		def bind(wrapper = self.wrapper, &block)
 			[wrapper.bind(@address, **@options, &block)]
 		end
 		
 		# Connects a socket to the given address. If a block is given, the socket will be automatically closed when the block exits.
-		# @return [Socket] the connected socket
+		# @returns [Socket] the connected socket
 		def connect(wrapper = self.wrapper, &block)
 			wrapper.connect(@address, **@options, &block)
 		end

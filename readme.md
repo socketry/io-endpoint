@@ -6,7 +6,9 @@ Provides a separation of concerns interface for IO endpoints. This allows you to
 
 ## Usage
 
-Please see the [documentation](https://socketry.github.io/io-endpoint) for more information.
+Please see the [project documentation](https://socketry.github.io/io-endpoint) for more details.
+
+  - [Getting Started](https://socketry.github.io/io-endpointguides/getting-started/index) - This guide explains how to get started with `io-endpoint`, a library that provides a separation of concerns interface for network I/O endpoints.
 
 ## Contributing
 
