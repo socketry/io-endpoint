@@ -42,6 +42,30 @@ describe IO::Endpoint::HostEndpoint do
 		bound&.close
 	end
 	
+	it "fails to next address if the first address fails" do
+		bound = endpoint.bind
+		
+		skip("Dual stack required for this test.") if bound.size < 2
+		
+		server_endpoint = subject.new(["localhost", bound.last.local_address.ip_port, nil, ::Socket::SOCK_STREAM])
+		
+		wrapper = server_endpoint.wrapper.dup
+		wrapper.singleton_class.prepend(Module.new do
+			def connect(address, **options)
+				if address.ipv6?
+					raise Errno::ENETUNREACH
+				else
+					super(address, **options)
+				end
+			end
+		end)
+		
+		connection = server_endpoint.connect(wrapper)
+		expect(connection).to be_a(Socket)
+		expect(connection.remote_address).to be(:ipv4?)
+		connection.close
+	end
+	
 	with "#inspect" do
 		it "can generate a string representation" do
 			expect(endpoint.inspect).to be == "#<IO::Endpoint::HostEndpoint name=\"localhost\" service=0 family=nil type=1 protocol=nil flags=nil>"

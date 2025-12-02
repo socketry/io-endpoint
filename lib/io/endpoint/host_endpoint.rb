@@ -51,14 +51,15 @@ module IO::Endpoint
 		# @yields {|socket| ...} If a block is given, yields the connected socket (may be invoked multiple times during connection attempts).
 		# 	@parameter socket [Socket] The socket which is being connected.
 		# @returns [Socket] the connected socket
-		# @raise if no connection could complete successfully
+		# @raises [Exception] if no connection could complete successfully
 		def connect(wrapper = self.wrapper, &block)
 			last_error = nil
 			
 			Addrinfo.foreach(*@specification) do |address|
 				begin
 					socket = wrapper.connect(address, **@options)
-				rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, Errno::EAGAIN => last_error
+				rescue => last_error
+					Console.warn(self, "Failed to connect:", address, exception: last_error)
 					# Try again unless if possible, otherwise raise...
 				else
 					return socket unless block_given?
