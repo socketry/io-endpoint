@@ -59,7 +59,7 @@ module IO::Endpoint
 				begin
 					socket = wrapper.connect(address, **@options)
 				rescue => last_error
-					Console.warn(self, "Failed to connect:", address, exception: last_error)
+					Console.debug(self, "Failed to connect:", address, exception: last_error)
 					# Try again unless if possible, otherwise raise...
 				else
 					return socket unless block_given?
