@@ -69,6 +69,33 @@ describe IO::Endpoint::UNIXEndpoint do
 			expect(endpoint.inspect).to be =~ /#<IO::Endpoint::UNIXEndpoint path=.*test\.ipc/
 		end
 	end
+	
+	with "a long path" do
+		let(:path) {File.join(temporary_directory, "a" * 140, "test.ipc")}
+		let(:endpoint) {subject.new(path)}
+		
+		it "does not change the current working directory" do
+			cwd = Dir.pwd
+			
+			subject.new(path)
+			
+			expect(Dir.pwd).to be == cwd
+		end
+		
+		it "binds using a short path and creates a symlink at the original path" do
+			sockets = endpoint.bind
+			
+			expect(sockets.first).to be_a(Socket)
+			
+			expect(endpoint.path.bytesize).to be <= IO::Endpoint::UNIXEndpoint::MAX_UNIX_PATH_BYTES
+			expect(endpoint.raw_path.bytesize).to be > IO::Endpoint::UNIXEndpoint::MAX_UNIX_PATH_BYTES
+			
+			expect(File.symlink?(endpoint.raw_path)).to be == true
+			expect(File.readlink(endpoint.raw_path)).to be == endpoint.path
+		ensure
+			sockets&.each(&:close)
+		end
+	end
 end
 
 describe IO::Endpoint do

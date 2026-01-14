@@ -4,6 +4,7 @@
 # Copyright, 2023-2025, by Samuel Williams.
 
 require "digest"
+require "fileutils"
 require "tmpdir"
 
 require_relative "address_endpoint"
@@ -17,14 +18,14 @@ module IO::Endpoint
 		# Compute a stable temporary UNIX socket path for an overlong path.
 		# @parameter path [String] The original (possibly overlong) path.
 		# @returns [String] A short, stable path suitable for {Address.unix}.
-		def self.temporary_socket_path_for(path)
-			checksum = Digest::SHA256.hexdigest(path)
+		def self.temporary_socket_path_for(raw_path)
+			checksum = Digest::SHA1.hexdigest(raw_path)
 			filename = "#{checksum}.ipc"
 			
 			socket_path = File.join(Dir.tmpdir, filename)
 			return socket_path if socket_path.bytesize <= MAX_UNIX_PATH_BYTES
-
-			raise ArgumentError, "Unable to construct a UNIX socket path within #{MAX_UNIX_PATH_BYTES} bytes for #{path.inspect}"
+			
+			raise ArgumentError, "Unable to construct a UNIX socket path within #{MAX_UNIX_PATH_BYTES} bytes for #{raw_path.inspect}"
 		end
 		
 		# Initialize a new UNIX domain socket endpoint.
@@ -32,14 +33,14 @@ module IO::Endpoint
 		# @parameter type [Integer] The socket type (defaults to Socket::SOCK_STREAM).
 		# @parameter options [Hash] Additional options to pass to the parent class.
 		def initialize(path, type = Socket::SOCK_STREAM, **options)
-			@path = path
-			@socket_path = if path.bytesize <= MAX_UNIX_PATH_BYTES
+			@raw_path = path
+			@path = if path.bytesize <= MAX_UNIX_PATH_BYTES
 				path
 			else
-				self.class.temporary_socket_path_for(path)
+				self.class.temporary_socket_path_for(@raw_path)
 			end
 			
-			super(Address.unix(@socket_path, type), **options)
+			super(Address.unix(@path, type), **options)
 		end
 		
 		# Get a string representation of the UNIX endpoint.
@@ -57,12 +58,12 @@ module IO::Endpoint
 		# @attribute [String] The path to the UNIX socket.
 		attr :path
 		
-		# @attribute [String] The effective path used for binding/connecting.
+		# @attribute [String] The original path.
 		# This may differ from {#path} when the original path is too long for a UNIX socket address.
-		attr :socket_path
+		attr :raw_path
 		
 		def symlink?
-			@socket_path != @path
+			@raw_path != @path
 		end
 		
 		# Check if the socket is currently bound and accepting connections.
@@ -95,6 +96,24 @@ module IO::Endpoint
 				raise
 			end
 		end
+		
+		private def create_symlink_if_required!
+			return unless symlink?
+			
+			if File.symlink?(@raw_path) && File.readlink(@raw_path) == @path
+				return
+			end
+			
+			FileUtils.mkdir_p(File.dirname(@raw_path))
+			File.symlink(@path, @raw_path)
+		end
+		
+		private def unlink_stale_paths!
+			File.unlink(@raw_path) rescue nil
+			if symlink?
+				File.unlink(@path) rescue nil
+			end
+		end
 	end
 	
 	# @parameter path [String]
@@ -104,23 +123,5 @@ module IO::Endpoint
 	# @returns [UNIXEndpoint]
 	def self.unix(path = "", type = ::Socket::SOCK_STREAM, **options)
 		UNIXEndpoint.new(path, type, **options)
-	end
-
-			
-	private def create_symlink_if_required!
-		return unless symlink?
-		
-		if File.symlink?(@path) && File.readlink(@path) == @socket_path
-			return
-		end
-		
-		File.symlink(@socket_path, @path)
-	end
-	
-	private def unlink_stale_paths!
-		File.unlink(@socket_path) rescue nil
-		if symlink?
-			File.unlink(@path) rescue nil
-		end
 	end
 end
