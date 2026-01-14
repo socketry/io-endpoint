@@ -52,7 +52,7 @@ module IO::Endpoint
 		# Get a detailed string representation of the UNIX endpoint.
 		# @returns [String] A detailed string representation including the path.
 		def inspect
-			"\#<#{self.class} path=#{@path.inspect}>"
+			"\#<#{self.class} path=#{@path.inspect}> raw_path=#{@raw_path.inspect}"
 		end
 		
 		# @attribute [String] The path to the UNIX socket.
