@@ -62,6 +62,9 @@ module IO::Endpoint
 		# This may differ from {#path} when the original path is too long for a UNIX socket address.
 		attr :raw_path
 		
+		# Check if a symlink is used for this endpoint.
+		# A symlink is created when the original path exceeds {MAX_UNIX_PATH_BYTES} and a shorter temporary path is used for the actual socket.
+		# @returns [Boolean] True if the original path differs from the socket path, indicating a symlink is required.
 		def symlink?
 			@raw_path != @path
 		end
