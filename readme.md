@@ -10,6 +10,56 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
   - [Getting Started](https://socketry.github.io/io-endpointguides/getting-started/index) - This guide explains how to get started with `io-endpoint`, a library that provides a separation of concerns interface for network I/O endpoints.
 
+## Releases
+
+Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
+
+### Unreleased
+
+  - Added `IO::Endpoint::NamedEndpoints` for accessing endpoints by symbolic names, useful for running applications on multiple endpoints with different configurations.
+
+### v0.16.0
+
+  - Improved error handling in `#connect` for more robust connection handling.
+  - Added getting started guide and improved documentation coverage.
+
+### v0.15.2
+
+  - Fixed `UNIXEndpoint#bind` to pass all arguments through to super.
+
+### v0.15.1
+
+  - Added `async-dns` to externals and restored removed method.
+
+### v0.15.0
+
+  - Allow wrapper to be customized using endpoint `options[:wrapper]`.
+  - Expose wrapper extension points for `connect` and `accept`.
+
+### v0.14.0
+
+  - Uniform `#to_s` and `#inspect` implementations across all endpoints.
+
+### v0.13.1
+
+  - Fixed state leak between iterations of the accept loop.
+
+### v0.13.0
+
+  - Propagate options assigned to composite endpoint to nested endpoints.
+
+### v0.12.0
+
+  - Expose `size` and internal endpoints for composite endpoint.
+
+### v0.10.3
+
+  - Fixed `SSLServer#accept` failures causing accept loop to exit. (\#10)
+
+## See Also
+
+  - [async-io](https://github.com/socketry/async-io) — Where this implementation originally came from.
+
 ## Contributing
 
 We welcome contributions to this project.
@@ -27,7 +77,3 @@ In order to protect users of this project, we require all contributors to comply
 ### Community Guidelines
 
 This project is best served by a collaborative and respectful environment. Treat each other professionally, respect differing viewpoints, and engage constructively. Harassment, discrimination, or harmful behavior is not tolerated. Communicate clearly, listen actively, and support one another. If any issues arise, please inform the project maintainers.
-
-## See Also
-
-  - [async-io](https://github.com/socketry/async-io) — Where this implementation originally came from.
