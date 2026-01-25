@@ -10,3 +10,8 @@ files:
   title: Getting Started
   description: This guide explains how to get started with `io-endpoint`, a library
     that provides a separation of concerns interface for network I/O endpoints.
+- path: named-endpoints.md
+  title: Named Endpoints
+  description: This guide explains how to use `IO::Endpoint::NamedEndpoints` to manage
+    multiple endpoints by name, enabling scenarios like running the same application
+    on different protocols or ports.

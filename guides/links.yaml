@@ -1,3 +1,6 @@
 getting-started:
   order: 1
 
+named-endpoints:
+  order: 2
+

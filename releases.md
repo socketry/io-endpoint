@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+- Added `IO::Endpoint::NamedEndpoints` for accessing endpoints by symbolic names, useful for running applications on multiple endpoints with different configurations.
+
 ## v0.16.0
 
 - Improved error handling in `#connect` for more robust connection handling.
