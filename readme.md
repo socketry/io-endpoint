@@ -16,7 +16,7 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
 Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
 
-### Unreleased
+### v0.17.0
 
   - Added `IO::Endpoint::NamedEndpoints` for accessing endpoints by symbolic names, useful for running applications on multiple endpoints with different configurations.
 
