@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Add `#to_s` and `#inspect` for `IO::Endpoint::NamedEndpoints`.
+
 ## v0.17.0
 
   - Added `IO::Endpoint::NamedEndpoints` for accessing endpoints by symbolic names, useful for running applications on multiple endpoints with different configurations.

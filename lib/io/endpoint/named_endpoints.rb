@@ -16,6 +16,24 @@ module IO::Endpoint
 			@endpoints = endpoints
 		end
 		
+		# Get a string representation of the named endpoints.
+		# @returns [String] A string representation listing all named endpoints.
+		def to_s
+			parts = @endpoints.map do |name, endpoint|
+				"#{name}:#{endpoint}"
+			end
+			"named:#{parts.join(",")}"
+		end
+		
+		# Get a detailed string representation of the named endpoints.
+		# @returns [String] A detailed string representation including all named endpoints.
+		def inspect
+			parts = @endpoints.map do |name, endpoint|
+				"#{name}: #{endpoint.inspect}"
+			end
+			"\#<#{self.class} #{parts.join(", ")}>"
+		end
+		
 		# @attribute [Hash(Symbol, Generic)] The endpoints hash mapping names to endpoint instances.
 		attr :endpoints
 		

@@ -127,6 +127,23 @@ describe IO::Endpoint::NamedEndpoints do
 			expect(named_endpoints.endpoints).to be == endpoints
 		end
 	end
+	
+	with "#to_s" do
+		it "can generate a string representation" do
+			expect(named_endpoints.to_s).to be =~ /named:/
+			expect(named_endpoints.to_s).to be =~ /http1:/
+			expect(named_endpoints.to_s).to be =~ /http2:/
+		end
+	end
+	
+	with "#inspect" do
+		it "can generate a detailed string representation" do
+			expect(named_endpoints.inspect).to be =~ /#<IO::Endpoint::NamedEndpoints/
+			expect(named_endpoints.inspect).to be =~ /http1:/
+			expect(named_endpoints.inspect).to be =~ /http2:/
+			expect(named_endpoints.inspect).to be =~ /HostEndpoint/
+		end
+	end
 end
 
 describe IO::Endpoint do
