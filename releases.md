@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.17.1
 
   - Add `#to_s` and `#inspect` for `IO::Endpoint::NamedEndpoints`.
 

@@ -16,6 +16,10 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
 Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
 
+### v0.17.1
+
+  - Add `#to_s` and `#inspect` for `IO::Endpoint::NamedEndpoints`.
+
 ### v0.17.0
 
   - Added `IO::Endpoint::NamedEndpoints` for accessing endpoints by symbolic names, useful for running applications on multiple endpoints with different configurations.
@@ -53,10 +57,6 @@ Please see the [project releases](https://socketry.github.io/io-endpointreleases
 ### v0.12.0
 
   - Expose `size` and internal endpoints for composite endpoint.
-
-### v0.10.3
-
-  - Fixed `SSLServer#accept` failures causing accept loop to exit. (\#10)
 
 ## See Also
 
