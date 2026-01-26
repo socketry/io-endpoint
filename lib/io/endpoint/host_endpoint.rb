@@ -31,7 +31,6 @@ module IO::Endpoint
 			"\#<#{self.class} name=#{nodename.inspect} service=#{service.inspect} family=#{family.inspect} type=#{socktype.inspect} protocol=#{protocol.inspect} flags=#{flags.inspect}>"
 		end
 		
-		
 		# @attribute [Array] The host specification array.
 		attr :specification
 		
