@@ -28,6 +28,8 @@ module IO::Endpoint
 				"inet:#{@address.inspect_sockaddr}"
 			when Socket::AF_INET6
 				"inet6:#{@address.inspect_sockaddr}"
+			when Socket::AF_UNIX
+				"unix:#{@address.unix_path}"
 			else
 				"address:#{@address.inspect_sockaddr}"
 			end
