@@ -3,20 +3,44 @@
 # Released under the MIT License.
 # Copyright, 2023-2025, by Samuel Williams.
 
+require "digest"
+require "fileutils"
+require "tmpdir"
+
 require_relative "address_endpoint"
 
 module IO::Endpoint
 	# This class doesn't exert ownership over the specified unix socket and ensures exclusive access by using `flock` where possible.
 	class UNIXEndpoint < AddressEndpoint
+		# The maximum safe UNIX socket path length in bytes (not including the null terminator).
+		MAX_UNIX_PATH_BYTES = 103
+		
+		# Compute a stable temporary UNIX socket path for an overlong path.
+		# @parameter path [String] The original (possibly overlong) path.
+		# @returns [String] A short, stable path suitable for {Address.unix}.
+		def self.temporary_socket_path_for(raw_path)
+			checksum = Digest::SHA1.hexdigest(raw_path)
+			filename = "#{checksum}.ipc"
+			
+			socket_path = File.join(Dir.tmpdir, filename)
+			return socket_path if socket_path.bytesize <= MAX_UNIX_PATH_BYTES
+			
+			raise ArgumentError, "Unable to construct a UNIX socket path within #{MAX_UNIX_PATH_BYTES} bytes for #{raw_path.inspect}"
+		end
+		
 		# Initialize a new UNIX domain socket endpoint.
 		# @parameter path [String] The path to the UNIX socket.
 		# @parameter type [Integer] The socket type (defaults to Socket::SOCK_STREAM).
 		# @parameter options [Hash] Additional options to pass to the parent class.
 		def initialize(path, type = Socket::SOCK_STREAM, **options)
-			# I wonder if we should implement chdir behaviour in here if path is longer than 104 characters.
-			super(Address.unix(path, type), **options)
+			@raw_path = path
+			@path = if path.bytesize <= MAX_UNIX_PATH_BYTES
+				path
+			else
+				self.class.temporary_socket_path_for(@raw_path)
+			end
 			
-			@path = path
+			super(Address.unix(@path, type), **options)
 		end
 		
 		# Get a string representation of the UNIX endpoint.
@@ -28,11 +52,22 @@ module IO::Endpoint
 		# Get a detailed string representation of the UNIX endpoint.
 		# @returns [String] A detailed string representation including the path.
 		def inspect
-			"\#<#{self.class} path=#{@path.inspect}>"
+			"\#<#{self.class} path=#{@path.inspect}> raw_path=#{@raw_path.inspect}"
 		end
 		
 		# @attribute [String] The path to the UNIX socket.
 		attr :path
+		
+		# @attribute [String] The original path.
+		# This may differ from {#path} when the original path is too long for a UNIX socket address.
+		attr :raw_path
+		
+		# Check if a symlink is used for this endpoint.
+		# A symlink is created when the original path exceeds {MAX_UNIX_PATH_BYTES} and a shorter temporary path is used for the actual socket.
+		# @returns [Boolean] True if the original path differs from the socket path, indicating a symlink is required.
+		def symlink?
+			@raw_path != @path
+		end
 		
 		# Check if the socket is currently bound and accepting connections.
 		# @returns [Boolean] True if the socket is bound and accepting connections, false otherwise.
@@ -52,14 +87,34 @@ module IO::Endpoint
 		# @returns [Array(Socket)] The bound socket.
 		# @raises [Errno::EADDRINUSE] If the socket is still in use by another process.
 		def bind(...)
-			super
+			result = super
+			create_symlink_if_required!
+			return result
 		rescue Errno::EADDRINUSE
 			# If you encounter EADDRINUSE from `bind()`, you can check if the socket is actually accepting connections by attempting to `connect()` to it. If the socket is still bound by an active process, the connection will succeed. Otherwise, it should be safe to `unlink()` the path and try again.
 			if !bound?
-				File.unlink(@path) rescue nil
+				unlink_stale_paths!
 				retry
 			else
 				raise
+			end
+		end
+		
+		private def create_symlink_if_required!
+			return unless symlink?
+			
+			if File.symlink?(@raw_path) && File.readlink(@raw_path) == @path
+				return
+			end
+			
+			FileUtils.mkdir_p(File.dirname(@raw_path))
+			File.symlink(@path, @raw_path)
+		end
+		
+		private def unlink_stale_paths!
+			File.unlink(@raw_path) rescue nil
+			if symlink?
+				File.unlink(@path) rescue nil
 			end
 		end
 	end
