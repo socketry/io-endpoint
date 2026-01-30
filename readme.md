@@ -16,6 +16,10 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
 Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
 
+### v0.17.2
+
+  - When the unix path is bigger than what can fit into `struct sockaddr_un`, a shorter temporary path will be used instead and a symlink created at the original path.
+
 ### v0.17.1
 
   - Add `#to_s` and `#inspect` for `IO::Endpoint::NamedEndpoints`.
@@ -53,10 +57,6 @@ Please see the [project releases](https://socketry.github.io/io-endpointreleases
 ### v0.13.0
 
   - Propagate options assigned to composite endpoint to nested endpoints.
-
-### v0.12.0
-
-  - Expose `size` and internal endpoints for composite endpoint.
 
 ## See Also
 
