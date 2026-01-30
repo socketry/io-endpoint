@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 	spec.version = IO::Endpoint::VERSION
 	
 	spec.summary = "Provides a separation of concerns interface for IO endpoints."
-	spec.authors = ["Samuel Williams"]
+	spec.authors = ["Samuel Williams", "Delton Ding"]
 	spec.license = "MIT"
 	
 	spec.cert_chain  = ["release.cert"]
