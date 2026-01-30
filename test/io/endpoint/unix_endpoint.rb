@@ -70,6 +70,12 @@ describe IO::Endpoint::UNIXEndpoint do
 		end
 	end
 	
+	with "#symlink?" do
+		it "returns false for a normal path" do
+			expect(endpoint).not.to be(:symlink?)
+		end
+	end
+	
 	with "a long path" do
 		let(:path) {File.join(temporary_directory, "a" * 140, "test.ipc")}
 		let(:endpoint) {subject.new(path)}
@@ -87,11 +93,13 @@ describe IO::Endpoint::UNIXEndpoint do
 			
 			expect(sockets.first).to be_a(Socket)
 			
-			expect(endpoint.path.bytesize).to be <= IO::Endpoint::UNIXEndpoint::MAX_UNIX_PATH_BYTES
-			expect(endpoint.raw_path.bytesize).to be > IO::Endpoint::UNIXEndpoint::MAX_UNIX_PATH_BYTES
+			# Verify that a symlink was created at the original path
+			expect(File.symlink?(endpoint.path)).to be == true
+			expect(endpoint).to be(:symlink?)
 			
-			expect(File.symlink?(endpoint.raw_path)).to be == true
-			expect(File.readlink(endpoint.raw_path)).to be == endpoint.path
+			# Verify that the symlink points to a shorter path
+			actual_socket_path = File.readlink(endpoint.path)
+			expect(actual_socket_path.bytesize).to be < endpoint.path.bytesize
 		ensure
 			sockets&.each(&:close)
 		end
