@@ -8,13 +8,13 @@ Provides a separation of concerns interface for IO endpoints. This allows you to
 
 Please see the [project documentation](https://socketry.github.io/io-endpoint) for more details.
 
-  - [Getting Started](https://socketry.github.io/io-endpointguides/getting-started/index) - This guide explains how to get started with `io-endpoint`, a library that provides a separation of concerns interface for network I/O endpoints.
+  - [Getting Started](https://socketry.github.io/io-endpoint/guides/getting-started/index) - This guide explains how to get started with `io-endpoint`, a library that provides a separation of concerns interface for network I/O endpoints.
 
-  - [Named Endpoints](https://socketry.github.io/io-endpointguides/named-endpoints/index) - This guide explains how to use `IO::Endpoint::NamedEndpoints` to manage multiple endpoints by name, enabling scenarios like running the same application on different protocols or ports.
+  - [Named Endpoints](https://socketry.github.io/io-endpoint/guides/named-endpoints/index) - This guide explains how to use `IO::Endpoint::NamedEndpoints` to manage multiple endpoints by name, enabling scenarios like running the same application on different protocols or ports.
 
 ## Releases
 
-Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
+Please see the [project releases](https://socketry.github.io/io-endpoint/releases/index) for all releases.
 
 ### v0.17.2
 
