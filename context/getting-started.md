@@ -24,6 +24,7 @@ The library centers around the {ruby IO::Endpoint::Generic} class, which represe
 - {ruby IO::Endpoint::HostEndpoint} - Resolves hostnames to addresses (e.g., "localhost:8080")
 - {ruby IO::Endpoint::AddressEndpoint} - Works with specific network addresses
 - {ruby IO::Endpoint::UNIXEndpoint} - Handles UNIX domain sockets
+- {ruby IO::Endpoint::ExclusiveUNIXEndpoint} - Owns and cleans up UNIX domain socket paths
 - {ruby IO::Endpoint::SSLEndpoint} - Wraps endpoints with SSL/TLS encryption
 - {ruby IO::Endpoint::CompositeEndpoint} - Combines multiple endpoints
 
@@ -92,6 +93,30 @@ endpoint.bind do |server|
 	end
 end
 ```
+
+When a bound endpoint exclusively owns its socket path, use `IO::Endpoint.exclusive_unix`. Closing the bound endpoint removes the socket path. An adjacent lock file serializes ownership and allows a new process to recover a stale socket after the previous owner crashes:
+
+```ruby
+endpoint = IO::Endpoint.exclusive_unix("/tmp/myapp.sock")
+bound_endpoint = endpoint.bound
+
+begin
+	# Run a server using bound_endpoint.
+ensure
+	bound_endpoint.close
+end
+```
+
+Exclusive ownership applies to sockets created with `#bind` or `#bound`. An orderly close removes both the socket and lock paths. After a crash, the lock file can remain and is reused by subsequent owners.
+
+To generate a unique socket path for a worker, pass an existing directory and a prefix using `unique:`. The concrete path is generated immediately and is available through `#path`, so it can be registered with a service discovery mechanism before the worker starts serving:
+
+```ruby
+endpoint = IO::Endpoint.exclusive_unix("/tmp/workers", unique: "worker")
+endpoint.path # => "/tmp/workers/worker-12345-a4c091b25e2f6408.ipc"
+```
+
+The directory must already exist. Generated paths include the process identifier and random entropy. Crashed processes can leave stale socket and lock paths, so consumers should use stable names, tolerate failed connections, or obtain the viable paths from a service discovery mechanism.
 
 ### Using SSL/TLS
 

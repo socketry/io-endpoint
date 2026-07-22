@@ -9,9 +9,10 @@ require "fileutils"
 require "tmpdir"
 
 require_relative "address_endpoint"
+require_relative "bound_endpoint"
 
 module IO::Endpoint
-	# This class doesn't exert ownership over the specified unix socket and ensures exclusive access by using `flock` where possible.
+	# Represents an endpoint for a UNIX domain socket.
 	class UNIXEndpoint < AddressEndpoint
 		# Compute a stable temporary UNIX socket path for an overlong path.
 		# @parameter path [String] The original (possibly overlong) path.
@@ -64,6 +65,18 @@ module IO::Endpoint
 			@path
 		end
 		
+		# The filesystem paths used by this endpoint.
+		# @returns [Array(String)] The configured and actual UNIX socket paths.
+		def paths
+			target_path = @address.unix_path
+			
+			if @path == target_path
+				[@path]
+			else
+				[@path, target_path]
+			end
+		end
+		
 		# Check if a symlink is used for this endpoint.
 		#
 		# A symlink is created when the original path exceeds the system's maximum UNIX socket path length and a shorter temporary path is used for the actual socket.
@@ -83,6 +96,8 @@ module IO::Endpoint
 			return false
 		rescue Errno::ENOENT
 			return false
+		rescue Errno::ENOTSOCK
+			return false
 		end
 		
 		# Bind the UNIX socket, handling stale socket files.
@@ -96,12 +111,17 @@ module IO::Endpoint
 			return result
 		rescue Errno::EADDRINUSE
 			# If you encounter EADDRINUSE from `bind()`, you can check if the socket is actually accepting connections by attempting to `connect()` to it. If the socket is still bound by an active process, the connection will succeed. Otherwise, it should be safe to `unlink()` the path and try again.
-			if !bound?
+			if !bound? && stale_socket?
 				unlink_stale_paths!
 				retry
 			else
 				raise
 			end
+		end
+		
+		# Whether the actual path refers to a stale UNIX socket.
+		private def stale_socket?
+			File.socket?(@address.unix_path)
 		end
 		
 		# Read a symlink, returning nil if the file does not exist.

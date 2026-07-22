@@ -1,5 +1,11 @@
 # Releases
 
+## Unreleased
+
+  - Add `IO::Endpoint.exclusive_unix` for bound UNIX endpoints which own and remove their socket paths while supporting stale socket recovery.
+  - Add the `unique:` option for generating worker socket paths within an existing directory.
+  - Avoid replacing unrelated filesystem entries when recovering stale UNIX sockets.
+
 ## v0.17.2
 
   - When the unix path is bigger than what can fit into `struct sockaddr_un`, a shorter temporary path will be used instead and a symlink created at the original path.
