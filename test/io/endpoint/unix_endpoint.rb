@@ -346,6 +346,9 @@ describe IO::Endpoint do
 			end
 			
 			it "requires a valid prefix and an existing directory" do
+				file_path = File.join(temporary_directory, "file")
+				File.write(file_path, "not a directory")
+				
 				expect do
 					subject.exclusive_unix(temporary_directory, unique: false)
 				end.to raise_exception(ArgumentError)
@@ -357,6 +360,10 @@ describe IO::Endpoint do
 				expect do
 					subject.exclusive_unix(File.join(temporary_directory, "missing"), unique: "worker")
 				end.to raise_exception(Errno::ENOENT)
+				
+				expect do
+					subject.exclusive_unix(file_path, unique: "worker")
+				end.to raise_exception(Errno::ENOTDIR)
 			end
 		end
 	end
