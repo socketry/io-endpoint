@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - The `openssl` gem 3.3.0 or newer is now required.
+
 ## v0.17.2
 
   - When the unix path is bigger than what can fit into `struct sockaddr_un`, a shorter temporary path will be used instead and a symlink created at the original path.
