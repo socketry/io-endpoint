@@ -70,6 +70,14 @@ describe IO::Endpoint::TLS::Configuration do
 		end
 	end
 	
+	with "an unsupported private key representation" do
+		it "rejects a value which is not a string" do
+			expect do
+				subject.new(certificate_chain: certificate_chain, private_key: Object.new)
+			end.to raise_exception(TypeError, message: be =~ /private key must be provided as a string/)
+		end
+	end
+	
 	with "an unsupported verification policy" do
 		it "rejects the policy" do
 			expect do

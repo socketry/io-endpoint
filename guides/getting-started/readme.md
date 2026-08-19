@@ -136,7 +136,7 @@ endpoint = IO::Endpoint.ssl(
 
 Use `TrustStore.new(certificates: certificates)` when certificates are already represented as an array of individual PEM strings. Use `TrustStore.parse(certificate_bundle)` to split a concatenated PEM bundle into that canonical representation, or `TrustStore.load("/path/to/certificates.pem")` to load and parse a bundle from a file. Options such as `system_certificates: true` are forwarded from `load` to `parse`.
 
-The local certificate chain is an ordered array of individual PEM strings, with the leaf certificate first. Use `Certificates.parse(certificate_bundle)` to split a concatenated bundle while preserving that order.
+The local certificate chain is an ordered array of individual PEM strings, with the leaf certificate followed by any intermediate certificates. The root certificate is normally omitted. Use `Certificates.parse(certificate_bundle)` to split a concatenated bundle while preserving that order.
 
 Set `system_certificates: true` to include system-provided trusted certificates. System and custom certificates can be combined in the same trust store.
 
