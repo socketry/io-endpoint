@@ -36,7 +36,7 @@ describe IO::Endpoint::TLS::OpenSSL do
 		it "applies the trust store and local identity" do
 			configuration = IO::Endpoint::TLS::Configuration.new(
 				trust_store: trust_store,
-				certificate_chain: certificate.to_pem + certificate_authority_certificate.to_pem,
+				certificate_chain: [certificate.to_pem, certificate_authority_certificate.to_pem],
 				private_key: key.to_pem,
 			)
 			

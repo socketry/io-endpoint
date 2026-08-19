@@ -9,7 +9,7 @@ describe IO::Endpoint::TLS::Configuration do
 	let(:certificate) {"trusted certificate"}
 	let(:certificates) {[certificate]}
 	let(:trust_store) {IO::Endpoint::TLS::TrustStore.new(certificates: certificates)}
-	let(:certificate_chain) {"certificate chain"}
+	let(:certificate_chain) {["certificate chain"]}
 	let(:private_key) {"private key"}
 	
 	with "certificate material" do
@@ -36,7 +36,7 @@ describe IO::Endpoint::TLS::Configuration do
 			representation = configuration.inspect
 			
 			expect(representation).not.to be(:include?, certificate)
-			expect(representation).not.to be(:include?, certificate_chain)
+			expect(representation).not.to be(:include?, certificate_chain.first)
 			expect(representation).not.to be(:include?, private_key)
 			expect(representation).to be(:include?, "private_key")
 		end
@@ -53,6 +53,20 @@ describe IO::Endpoint::TLS::Configuration do
 			expect do
 				subject.new(private_key: private_key)
 			end.to raise_exception(ArgumentError, message: be =~ /provided together/)
+		end
+	end
+	
+	with "an unsupported certificate chain representation" do
+		it "rejects a concatenated string" do
+			expect do
+				subject.new(certificate_chain: "certificate chain", private_key: private_key)
+			end.to raise_exception(TypeError, message: be =~ /array of strings/)
+		end
+		
+		it "rejects an empty chain" do
+			expect do
+				subject.new(certificate_chain: [], private_key: private_key)
+			end.to raise_exception(ArgumentError, message: be =~ /at least one certificate/)
 		end
 	end
 	

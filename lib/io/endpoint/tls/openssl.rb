@@ -38,7 +38,10 @@ module IO::Endpoint
 				end
 				
 				if certificate_chain = configuration.certificate_chain
-					certificates = ::OpenSSL::X509::Certificate.load(certificate_chain)
+					certificates = certificate_chain.map do |certificate|
+						::OpenSSL::X509::Certificate.new(certificate)
+					end
+					
 					context.cert = certificates.shift
 					context.extra_chain_cert = certificates unless certificates.empty?
 					context.key = ::OpenSSL::PKey.read(configuration.private_key)

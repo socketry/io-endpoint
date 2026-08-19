@@ -12,13 +12,23 @@ module IO::Endpoint
 		class Configuration
 			# Initialize a TLS configuration from PEM-encoded certificate and private key material.
 			# @parameter trust_store [TrustStore | Nil] The trusted certificate sources.
-			# @parameter certificate_chain [String | Nil] The local certificate chain encoded as PEM, with the leaf certificate first.
+			# @parameter certificate_chain [Array(String) | Nil] The ordered local certificate chain encoded as individual PEM strings, with the leaf certificate first.
 			# @parameter private_key [String | Nil] The private key encoded as PEM.
 			# @parameter verification [Symbol | Nil] The peer verification policy: `:none`, `:peer`, or `:required`. When omitted, `:peer` is used if a trust store is provided.
 			# @raises [ArgumentError] If the certificate chain and private key are not provided together, or the verification policy is invalid.
 			def initialize(trust_store: nil, certificate_chain: nil, private_key: nil, verification: nil)
 				if certificate_chain.nil? != private_key.nil?
 					raise ArgumentError, "The certificate chain and private key must be provided together!"
+				end
+				
+				if certificate_chain
+					unless certificate_chain.is_a?(Array) && certificate_chain.all?{|certificate| certificate.is_a?(String)}
+						raise TypeError, "The certificate chain must be provided as an array of strings!"
+					end
+					
+					unless certificate_chain.any?
+						raise ArgumentError, "The certificate chain must contain at least one certificate!"
+					end
 				end
 				
 				verification = :peer if verification.nil? && trust_store
@@ -35,7 +45,7 @@ module IO::Endpoint
 			# @attribute [TrustStore | Nil] The trusted certificate sources.
 			attr :trust_store
 			
-			# @attribute [String | Nil] The local certificate chain encoded as PEM, with the leaf certificate first.
+			# @attribute [Array(String) | Nil] The ordered local certificate chain encoded as individual PEM strings, with the leaf certificate first.
 			attr :certificate_chain
 			
 			# @attribute [String | Nil] The private key encoded as PEM.

@@ -58,7 +58,7 @@ describe IO::Endpoint::SSLEndpoint do
 		let(:trust_store) do
 			IO::Endpoint::TLS::TrustStore.parse(certificate_authority_certificate.to_pem)
 		end
-		let(:certificate_chain) {certificate.to_pem + certificate_authority_certificate.to_pem}
+		let(:certificate_chain) {[certificate.to_pem]}
 		let(:private_key) {key.to_pem}
 		
 		let(:server_tls_configuration) do
