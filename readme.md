@@ -16,6 +16,10 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
 Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
 
+### Unreleased
+
+  - The `openssl` gem 3.3.0 or newer is now required.
+
 ### v0.17.2
 
   - When the unix path is bigger than what can fit into `struct sockaddr_un`, a shorter temporary path will be used instead and a symlink created at the original path.
