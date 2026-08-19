@@ -17,6 +17,8 @@ group :maintenance, optional: true do
 	gem "agent-context"
 	
 	gem "utopia-project" #, path: "../utopia-project"
+	
+	gem "decode"
 end
 
 group :test do
