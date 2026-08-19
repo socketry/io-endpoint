@@ -21,7 +21,7 @@ module IO::Endpoint
 					raise ArgumentError, "The certificate chain and private key must be provided together!"
 				end
 				
-				verification ||= :peer if trust_store
+				verification = :peer if verification.nil? && trust_store
 				unless [nil, :none, :peer, :required].include?(verification)
 					raise ArgumentError, "Unsupported verification policy: #{verification.inspect}!"
 				end

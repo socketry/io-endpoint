@@ -61,5 +61,11 @@ describe IO::Endpoint::TLS::Configuration do
 				subject.new(verification: :unsupported)
 			end.to raise_exception(ArgumentError, message: be =~ /Unsupported verification policy/)
 		end
+		
+		it "does not replace a false policy when a trust store is provided" do
+			expect do
+				subject.new(trust_store: trust_store, verification: false)
+			end.to raise_exception(ArgumentError, message: be =~ /Unsupported verification policy/)
+		end
 	end
 end

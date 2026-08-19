@@ -19,8 +19,8 @@ module IO::Endpoint
 				::OpenSSL::X509::Store.new.tap do |store|
 					store.set_default_paths if trust_store.system_certificates?
 					
-					trust_store.certificates.each do |certificate_bundle|
-						::OpenSSL::X509::Certificate.load(certificate_bundle).each do |certificate|
+					trust_store.certificates.each do |certificate_pem|
+						::OpenSSL::X509::Certificate.load(certificate_pem).each do |certificate|
 							store.add_cert(certificate)
 						end
 					end
