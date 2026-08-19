@@ -15,6 +15,13 @@ describe IO::Endpoint::SSLEndpoint do
 		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
 		let(:server_endpoint) {subject.new(endpoint, ssl_context: server_context)}
 		
+		it "can bind with a block" do
+			server_endpoint.bind do |server|
+				expect(server).to be_a(::OpenSSL::SSL::SSLServer)
+				expect(server.start_immediately).to be_falsey
+			end
+		end
+		
 		def client_endpoint(address)
 			endpoint = IO::Endpoint::AddressEndpoint.new(address)
 			return subject.new(endpoint, ssl_context: client_context)
@@ -173,6 +180,35 @@ describe IO::Endpoint::SSLEndpoint do
 	with "a simple SSL endpoint" do
 		let(:endpoint) {subject.new(IO::Endpoint.tcp("localhost", 0))}
 		
+		with "#address" do
+			it "delegates to the underlying endpoint" do
+				address = Addrinfo.tcp("localhost", 0)
+				endpoint = subject.new(IO::Endpoint::AddressEndpoint.new(address))
+				
+				expect(endpoint.address).to be_equal(address)
+			end
+		end
+		
+		with "#build_context" do
+			it "applies explicit SSL parameters" do
+				endpoint = subject.new(
+					IO::Endpoint.tcp("localhost", 0),
+					ssl_params: {verify_mode: ::OpenSSL::SSL::VERIFY_PEER},
+				)
+				
+				expect(endpoint.context.verify_mode).to be == ::OpenSSL::SSL::VERIFY_PEER
+			end
+		end
+		
+		with "#each" do
+			it "wraps each underlying endpoint" do
+				enumerator = endpoint.each
+				
+				expect(enumerator).to be_a(Enumerator)
+				expect(enumerator.to_a).to have_value(be_a(subject))
+			end
+		end
+		
 		with "#to_s" do
 			it "can generate a string representation" do
 				expect(endpoint.to_s).to be =~ /ssl:/
@@ -183,6 +219,15 @@ describe IO::Endpoint::SSLEndpoint do
 			it "can generate a string representation" do
 				expect(endpoint.inspect).to be =~ /#<IO::Endpoint::SSLEndpoint endpoint=/
 			end
+		end
+	end
+	
+	with ".ssl" do
+		it "constructs an SSL endpoint" do
+			endpoint = IO::Endpoint.ssl("localhost", 443, hostname: "example.com")
+			
+			expect(endpoint).to be_a(subject)
+			expect(endpoint.hostname).to be == "example.com"
 		end
 	end
 end
