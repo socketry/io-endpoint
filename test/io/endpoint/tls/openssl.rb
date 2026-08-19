@@ -60,11 +60,13 @@ describe IO::Endpoint::TLS::OpenSSL do
 		
 		it "disables peer verification when requested" do
 			context.verify_mode = ::OpenSSL::SSL::VERIFY_PEER
+			context.verify_hostname = true
 			configuration = IO::Endpoint::TLS::Configuration.new(verification: :none)
 			
 			subject.apply(context, configuration)
 			
 			expect(context.verify_mode).to be == ::OpenSSL::SSL::VERIFY_NONE
+			expect(context.verify_hostname).to be_falsey
 		end
 		
 		it "enables peer verification" do
@@ -73,6 +75,15 @@ describe IO::Endpoint::TLS::OpenSSL do
 			subject.apply(context, configuration)
 			
 			expect(context.verify_mode).to be == ::OpenSSL::SSL::VERIFY_PEER
+			expect(context.verify_hostname).to be_falsey
+		end
+		
+		it "enables hostname verification for verified clients" do
+			configuration = IO::Endpoint::TLS::Configuration.new(verification: :peer)
+			
+			subject.apply(context, configuration, hostname: "example.com")
+			
+			expect(context.verify_hostname).to be_truthy
 		end
 		
 		it "requires a peer certificate" do

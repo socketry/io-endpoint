@@ -29,6 +29,7 @@ describe IO::Endpoint::TLS::Configuration do
 		
 		it "verifies peers by default when a trust store is provided" do
 			expect(configuration.verification).to be == :peer
+			expect(configuration).to be(:verify_peer?)
 		end
 		
 		it "does not expose certificate or private key material when inspected" do
@@ -66,6 +67,14 @@ describe IO::Endpoint::TLS::Configuration do
 			expect do
 				subject.new(trust_store: trust_store, verification: false)
 			end.to raise_exception(ArgumentError, message: be =~ /Unsupported verification policy/)
+		end
+	end
+	
+	with "verification disabled" do
+		it "does not verify peers" do
+			configuration = subject.new(verification: :none)
+			
+			expect(configuration).not.to be(:verify_peer?)
 		end
 	end
 end

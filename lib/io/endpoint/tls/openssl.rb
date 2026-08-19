@@ -30,8 +30,9 @@ module IO::Endpoint
 			# Apply transport-neutral TLS configuration to an OpenSSL context.
 			# @parameter context [OpenSSL::SSL::SSLContext] The OpenSSL context to configure.
 			# @parameter configuration [Configuration] The transport-neutral TLS configuration.
+			# @parameter hostname [String | Nil] The hostname to verify for client connections.
 			# @returns [OpenSSL::SSL::SSLContext] The configured OpenSSL context.
-			def self.apply(context, configuration)
+			def self.apply(context, configuration, hostname: nil)
 				if trust_store = configuration.trust_store
 					context.cert_store = build_certificate_store(trust_store)
 				end
@@ -46,10 +47,15 @@ module IO::Endpoint
 				case configuration.verification
 				when :none
 					context.verify_mode = ::OpenSSL::SSL::VERIFY_NONE
+					context.verify_hostname = false
 				when :peer
 					context.verify_mode = ::OpenSSL::SSL::VERIFY_PEER
 				when :required
 					context.verify_mode = ::OpenSSL::SSL::VERIFY_PEER | ::OpenSSL::SSL::VERIFY_FAIL_IF_NO_PEER_CERT
+				end
+				
+				if hostname && configuration.verify_peer?
+					context.verify_hostname = true
 				end
 				
 				return context

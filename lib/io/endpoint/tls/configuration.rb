@@ -44,6 +44,12 @@ module IO::Endpoint
 			# @attribute [Symbol | Nil] The peer verification policy.
 			attr :verification
 			
+			# Whether peer certificates should be verified.
+			# @returns [Boolean] Whether peer verification is enabled.
+			def verify_peer?
+				return @verification == :peer || @verification == :required
+			end
+			
 			# Get a representation of the configuration without exposing certificate or private key material.
 			# @returns [String] A redacted representation of the configuration.
 			def inspect

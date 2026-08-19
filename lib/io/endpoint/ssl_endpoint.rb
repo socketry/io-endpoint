@@ -96,7 +96,7 @@ module IO::Endpoint
 			end
 			
 			if tls_configuration = self.tls_configuration
-				TLS::OpenSSL.apply(context, tls_configuration)
+				TLS::OpenSSL.apply(context, tls_configuration, hostname: self.hostname)
 			end
 			
 			# context.setup
@@ -159,10 +159,6 @@ module IO::Endpoint
 			
 			begin
 				socket.connect
-				
-				if hostname && [:peer, :required].include?(tls_configuration&.verification)
-					socket.post_connection_check(hostname)
-				end
 			rescue
 				socket.close
 				raise

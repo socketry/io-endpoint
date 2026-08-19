@@ -110,8 +110,14 @@ describe IO::Endpoint::SSLEndpoint do
 			
 			bound.bind do |server|
 				peer, address = server.accept
-				peer.accept
-				peer.close
+				
+				begin
+					peer.accept
+				rescue ::OpenSSL::SSL::SSLError
+					# The client rejects the server certificate during the handshake.
+				ensure
+					peer.close
+				end
 			end
 			
 			bound.sockets.each do |server|
