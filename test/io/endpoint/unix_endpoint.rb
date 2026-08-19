@@ -29,33 +29,30 @@ describe IO::Endpoint::UNIXEndpoint do
 		
 		expect(server).to be_a(Socket)
 		
-		server.listen(1)
-		
 		thread = Thread.new do
-			while true
-				peer, address = server.accept
-				peer.close
-			end
-		ensure
-			server&.close
+			accepted_socket, _address = server.accept
+			accepted_socket.close
 		end
-		
-		expect(endpoint).to be(:bound?)
-		
-		# Wait for the server to start accepting connections:
-		# I noticed on slow CI, that the connect would fail because the server has not called `#accept` yet, even if it's bound and listening!
-		Thread.pass until thread.status == "sleep"
 		
 		endpoint.connect do |socket|
 			expect(socket).to be_a(Socket)
 			
 			# Wait for the connection to be closed.
 			socket.wait_readable
-			
-			socket.close
 		end
+		
+		thread.value
 	ensure
+		sockets&.each(&:close)
 		thread&.kill
+		thread&.join
+	end
+	
+	it "can determine whether it is bound" do
+		sockets = endpoint.bind
+		
+		expect(endpoint).to be(:bound?)
+	ensure
 		sockets&.each(&:close)
 	end
 	
