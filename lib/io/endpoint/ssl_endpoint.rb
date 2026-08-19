@@ -159,6 +159,10 @@ module IO::Endpoint
 			
 			begin
 				socket.connect
+				
+				if hostname && [:peer, :required].include?(tls_configuration&.verification)
+					socket.post_connection_check(hostname)
+				end
 			rescue
 				socket.close
 				raise

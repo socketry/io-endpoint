@@ -51,6 +51,10 @@ describe IO::Endpoint::SSLEndpoint do
 	with "mutual TLS configuration" do
 		include Sus::Fixtures::OpenSSL::ValidCertificateContext
 		
+		def certificate_name
+			return ::OpenSSL::X509::Name.parse("/O=Test/CN=localhost")
+		end
+		
 		let(:trust_store) do
 			IO::Endpoint::TLS::TrustStore.parse(certificate_authority_certificate.to_pem)
 		end
@@ -77,9 +81,9 @@ describe IO::Endpoint::SSLEndpoint do
 		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
 		let(:server_endpoint) {subject.new(endpoint, tls_configuration: server_tls_configuration)}
 		
-		def client_endpoint(address)
+		def client_endpoint(address, hostname: "localhost")
 			endpoint = IO::Endpoint::AddressEndpoint.new(address)
-			return subject.new(endpoint, tls_configuration: client_tls_configuration, hostname: "localhost")
+			return subject.new(endpoint, tls_configuration: client_tls_configuration, hostname: hostname)
 		end
 		
 		it "authenticates both peers" do
@@ -96,6 +100,24 @@ describe IO::Endpoint::SSLEndpoint do
 				client_endpoint(server.local_address).connect do |client|
 					expect(client.peer_cert.to_der).to be == certificate.to_der
 				end
+			end
+		ensure
+			bound&.close
+		end
+		
+		it "rejects a trusted certificate for a different hostname" do
+			bound = server_endpoint.bound
+			
+			bound.bind do |server|
+				peer, address = server.accept
+				peer.accept
+				peer.close
+			end
+			
+			bound.sockets.each do |server|
+				expect do
+					client_endpoint(server.local_address, hostname: "example.com").connect
+				end.to raise_exception(::OpenSSL::SSL::SSLError, message: be =~ /hostname/)
 			end
 		ensure
 			bound&.close

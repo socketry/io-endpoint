@@ -141,4 +141,4 @@ The SSL endpoint converts the trust store into an OpenSSL certificate store and 
 
 The OpenSSL conversion is also available directly using `IO::Endpoint::TLS::OpenSSL.build_certificate_store(trust_store)`.
 
-For a server which requires clients to provide a trusted certificate, set `verification: :required`. Use `:peer` to verify a certificate when the peer provides one, and `:none` to explicitly disable peer verification. When a trust store is supplied and no policy is specified, peer verification is enabled by default.
+For a server which requires clients to provide a trusted certificate, set `verification: :required`. Use `:peer` to verify a certificate when the peer provides one, and `:none` to explicitly disable peer verification. When a trust store is supplied and no policy is specified, peer verification is enabled by default. On client connections with a hostname, peer verification also checks that the certificate identifies that hostname.
