@@ -7,6 +7,6 @@
 class IO
 	# @namespace
 	module Endpoint
-		VERSION = "0.17.2"
+		VERSION = "0.18.0"
 	end
 end

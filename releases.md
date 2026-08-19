@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.18.0
 
   - The `openssl` gem 3.3.0 or newer is now required.
   - Added transport-neutral TLS trust stores, certificate chains and configuration, suitable for future QUIC integration.

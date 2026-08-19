@@ -16,7 +16,7 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
 Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
 
-### Unreleased
+### v0.18.0
 
   - The `openssl` gem 3.3.0 or newer is now required.
   - Added transport-neutral TLS trust stores, certificate chains and configuration, suitable for future QUIC integration.

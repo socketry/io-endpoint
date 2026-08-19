@@ -3,6 +3,8 @@
 ---
 description: Provides a separation of concerns interface for IO endpoints.
 metadata:
+  bug_tracker_uri: https://github.com/socketry/io-endpoint/issues
+  changelog_uri: https://github.com/socketry/io-endpoint/blob/main/releases.md
   documentation_uri: https://socketry.github.io/io-endpoint
   source_code_uri: https://github.com/socketry/io-endpoint.git
 files:
