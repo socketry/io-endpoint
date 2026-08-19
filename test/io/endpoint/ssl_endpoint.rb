@@ -48,6 +48,60 @@ describe IO::Endpoint::SSLEndpoint do
 		end
 	end
 	
+	with "mutual TLS configuration" do
+		include Sus::Fixtures::OpenSSL::ValidCertificateContext
+		
+		let(:trust_store) do
+			IO::Endpoint::TLS::TrustStore.parse(certificate_authority_certificate.to_pem)
+		end
+		let(:certificate_chain) {certificate.to_pem + certificate_authority_certificate.to_pem}
+		let(:private_key) {key.to_pem}
+		
+		let(:server_tls_configuration) do
+			IO::Endpoint::TLS::Configuration.new(
+				trust_store: trust_store,
+				certificate_chain: certificate_chain,
+				private_key: private_key,
+				verification: :required,
+			)
+		end
+		
+		let(:client_tls_configuration) do
+			IO::Endpoint::TLS::Configuration.new(
+				trust_store: trust_store,
+				certificate_chain: certificate_chain,
+				private_key: private_key,
+			)
+		end
+		
+		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
+		let(:server_endpoint) {subject.new(endpoint, tls_configuration: server_tls_configuration)}
+		
+		def client_endpoint(address)
+			endpoint = IO::Endpoint::AddressEndpoint.new(address)
+			return subject.new(endpoint, tls_configuration: client_tls_configuration, hostname: "localhost")
+		end
+		
+		it "authenticates both peers" do
+			bound = server_endpoint.bound
+			
+			bound.bind do |server|
+				peer, address = server.accept
+				peer.accept
+				expect(peer.peer_cert.to_der).to be == certificate.to_der
+				peer.close
+			end
+			
+			bound.sockets.each do |server|
+				client_endpoint(server.local_address).connect do |client|
+					expect(client.peer_cert.to_der).to be == certificate.to_der
+				end
+			end
+		ensure
+			bound&.close
+		end
+	end
+	
 	with "invalid certificates" do
 		include Sus::Fixtures::OpenSSL::InvalidCertificateContext
 		include Sus::Fixtures::OpenSSL::VerifiedCertificateContext
