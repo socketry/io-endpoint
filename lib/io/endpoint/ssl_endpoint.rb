@@ -5,6 +5,7 @@
 
 require_relative "host_endpoint"
 require_relative "generic"
+require_relative "tls/openssl"
 
 require "openssl"
 
@@ -31,6 +32,7 @@ module IO::Endpoint
 		# Initialize a new SSL endpoint.
 		# @parameter endpoint [Generic] The underlying endpoint to wrap with SSL.
 		# @option ssl_context [OpenSSL::SSL::SSLContext, nil] An optional SSL context to use.
+		# @option tls_configuration [TLS::Configuration, nil] Transport-neutral TLS certificate and verification configuration.
 		# @parameter options [Hash] Additional options including `:ssl_params` and `:hostname`.
 		def initialize(endpoint, **options)
 			super(**options)
@@ -79,12 +81,22 @@ module IO::Endpoint
 			@options[:ssl_params]
 		end
 		
+		# Get the transport-neutral TLS configuration from options.
+		# @returns [TLS::Configuration, nil] The TLS configuration if specified.
+		def tls_configuration
+			@options[:tls_configuration]
+		end
+		
 		# Build an SSL context with configured parameters.
 		# @parameter context [OpenSSL::SSL::SSLContext] An optional SSL context to configure.
 		# @returns [OpenSSL::SSL::SSLContext] The configured SSL context.
 		def build_context(context = ::OpenSSL::SSL::SSLContext.new)
 			if params = self.params
 				context.set_params(params)
+			end
+			
+			if tls_configuration = self.tls_configuration
+				TLS::OpenSSL.apply(context, tls_configuration, hostname: self.hostname)
 			end
 			
 			# context.setup
@@ -175,11 +187,12 @@ module IO::Endpoint
 	
 	# @parameter arguments
 	# @parameter ssl_context [OpenSSL::SSL::SSLContext, nil]
+	# @parameter tls_configuration [TLS::Configuration, nil]
 	# @parameter hostname [String, nil]
 	# @parameter options keyword arguments passed through to {Endpoint.tcp}
 	#
 	# @returns [SSLEndpoint]
-	def self.ssl(*arguments, ssl_context: nil, hostname: nil, **options)
-		SSLEndpoint.new(self.tcp(*arguments, **options), ssl_context: ssl_context, hostname: hostname)
+	def self.ssl(*arguments, ssl_context: nil, tls_configuration: nil, hostname: nil, **options)
+		SSLEndpoint.new(self.tcp(*arguments, **options), ssl_context: ssl_context, tls_configuration: tls_configuration, hostname: hostname)
 	end
 end

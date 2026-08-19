@@ -15,6 +15,13 @@ describe IO::Endpoint::SSLEndpoint do
 		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
 		let(:server_endpoint) {subject.new(endpoint, ssl_context: server_context)}
 		
+		it "can bind with a block" do
+			server_endpoint.bind do |server|
+				expect(server).to be_a(::OpenSSL::SSL::SSLServer)
+				expect(server.start_immediately).to be_falsey
+			end
+		end
+		
 		def client_endpoint(address)
 			endpoint = IO::Endpoint::AddressEndpoint.new(address)
 			return subject.new(endpoint, ssl_context: client_context)
@@ -42,6 +49,88 @@ describe IO::Endpoint::SSLEndpoint do
 				client.wait_readable
 				
 				client.close
+			end
+		ensure
+			bound&.close
+		end
+	end
+	
+	with "mutual TLS configuration" do
+		include Sus::Fixtures::OpenSSL::ValidCertificateContext
+		
+		def certificate_name
+			return ::OpenSSL::X509::Name.parse("/O=Test/CN=localhost")
+		end
+		
+		let(:trust_store) do
+			IO::Endpoint::TLS::TrustStore.parse(certificate_authority_certificate.to_pem)
+		end
+		let(:certificate_chain) {[certificate.to_pem]}
+		let(:private_key) {key.to_pem}
+		
+		let(:server_tls_configuration) do
+			IO::Endpoint::TLS::Configuration.new(
+				trust_store: trust_store,
+				certificate_chain: certificate_chain,
+				private_key: private_key,
+				verification: :required,
+			)
+		end
+		
+		let(:client_tls_configuration) do
+			IO::Endpoint::TLS::Configuration.new(
+				trust_store: trust_store,
+				certificate_chain: certificate_chain,
+				private_key: private_key,
+			)
+		end
+		
+		let(:endpoint) {IO::Endpoint.tcp("localhost", 0)}
+		let(:server_endpoint) {subject.new(endpoint, tls_configuration: server_tls_configuration)}
+		
+		def client_endpoint(address, hostname: "localhost")
+			endpoint = IO::Endpoint::AddressEndpoint.new(address)
+			return subject.new(endpoint, tls_configuration: client_tls_configuration, hostname: hostname)
+		end
+		
+		it "authenticates both peers" do
+			bound = server_endpoint.bound
+			
+			bound.bind do |server|
+				peer, address = server.accept
+				peer.accept
+				expect(peer.peer_cert.to_der).to be == certificate.to_der
+				peer.close
+			end
+			
+			bound.sockets.each do |server|
+				client_endpoint(server.local_address).connect do |client|
+					expect(client.peer_cert.to_der).to be == certificate.to_der
+				end
+			end
+		ensure
+			bound&.close
+		end
+		
+		it "rejects a trusted certificate for a different hostname" do
+			bound = server_endpoint.bound
+			
+			bound.bind do |server|
+				peer, address = server.accept
+				
+				begin
+					peer.accept
+				rescue ::OpenSSL::SSL::SSLError
+					# The client rejects the server certificate during the handshake.
+				ensure
+					peer.close
+				end
+			end
+			
+			bound.sockets.each do |server|
+				expect do
+					client_endpoint(server.local_address, hostname: "example.com").connect
+				end.to raise_exception(::OpenSSL::SSL::SSLError, message: be =~ /hostname/)
 			end
 		ensure
 			bound&.close
@@ -91,6 +180,35 @@ describe IO::Endpoint::SSLEndpoint do
 	with "a simple SSL endpoint" do
 		let(:endpoint) {subject.new(IO::Endpoint.tcp("localhost", 0))}
 		
+		with "#address" do
+			it "delegates to the underlying endpoint" do
+				address = Addrinfo.tcp("localhost", 0)
+				endpoint = subject.new(IO::Endpoint::AddressEndpoint.new(address))
+				
+				expect(endpoint.address).to be_equal(address)
+			end
+		end
+		
+		with "#build_context" do
+			it "applies explicit SSL parameters" do
+				endpoint = subject.new(
+					IO::Endpoint.tcp("localhost", 0),
+					ssl_params: {verify_mode: ::OpenSSL::SSL::VERIFY_PEER},
+				)
+				
+				expect(endpoint.context.verify_mode).to be == ::OpenSSL::SSL::VERIFY_PEER
+			end
+		end
+		
+		with "#each" do
+			it "wraps each underlying endpoint" do
+				enumerator = endpoint.each
+				
+				expect(enumerator).to be_a(Enumerator)
+				expect(enumerator.to_a).to have_value(be_a(subject))
+			end
+		end
+		
 		with "#to_s" do
 			it "can generate a string representation" do
 				expect(endpoint.to_s).to be =~ /ssl:/
@@ -101,6 +219,15 @@ describe IO::Endpoint::SSLEndpoint do
 			it "can generate a string representation" do
 				expect(endpoint.inspect).to be =~ /#<IO::Endpoint::SSLEndpoint endpoint=/
 			end
+		end
+	end
+	
+	with ".ssl" do
+		it "constructs an SSL endpoint" do
+			endpoint = IO::Endpoint.ssl("localhost", 443, hostname: "example.com")
+			
+			expect(endpoint).to be_a(subject)
+			expect(endpoint.hostname).to be == "example.com"
 		end
 	end
 end

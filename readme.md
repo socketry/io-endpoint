@@ -19,6 +19,8 @@ Please see the [project releases](https://socketry.github.io/io-endpointreleases
 ### Unreleased
 
   - The `openssl` gem 3.3.0 or newer is now required.
+  - Added transport-neutral TLS trust stores, certificate chains and configuration, suitable for future QUIC integration.
+  - Added OpenSSL conversion and SSL endpoint integration, including hostname verification and mutual TLS.
 
 ### v0.17.2
 
@@ -57,10 +59,6 @@ Please see the [project releases](https://socketry.github.io/io-endpointreleases
 ### v0.13.1
 
   - Fixed state leak between iterations of the accept loop.
-
-### v0.13.0
-
-  - Propagate options assigned to composite endpoint to nested endpoints.
 
 ## See Also
 

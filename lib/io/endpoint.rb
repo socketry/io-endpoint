@@ -6,6 +6,9 @@
 require_relative "endpoint/version"
 require_relative "endpoint/generic"
 require_relative "endpoint/shared_endpoint"
+require_relative "endpoint/tls/certificates"
+require_relative "endpoint/tls/trust_store"
+require_relative "endpoint/tls/configuration"
 
 # Represents a collection of endpoint classes for network I/O operations.
 module IO::Endpoint

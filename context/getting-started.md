@@ -111,3 +111,37 @@ endpoint.connect do |socket|
 	puts response
 end
 ```
+
+### Configuring TLS Certificate Material
+
+Use {ruby IO::Endpoint::TLS::Configuration} to provide certificate and private key material without coupling application configuration to OpenSSL. Certificate material is supplied as PEM content rather than file paths, so it can be loaded from files, environment variables, or secret stores:
+
+```ruby
+trust_store = IO::Endpoint::TLS::TrustStore.parse(root_certificates)
+certificate_chain = IO::Endpoint::TLS::Certificates.parse(certificate_chain_bundle)
+
+tls_configuration = IO::Endpoint::TLS::Configuration.new(
+	trust_store: trust_store,
+	certificate_chain: certificate_chain,
+	private_key: private_key,
+)
+
+endpoint = IO::Endpoint.ssl(
+	"example.com",
+	443,
+	hostname: "example.com",
+	tls_configuration: tls_configuration,
+)
+```
+
+Use `TrustStore.new(certificates: certificates)` when certificates are already represented as an array of individual PEM strings. Use `TrustStore.parse(certificate_bundle)` to split a concatenated PEM bundle into that canonical representation, or `TrustStore.load("/path/to/certificates.pem")` to load and parse a bundle from a file. Options such as `system_certificates: true` are forwarded from `load` to `parse`.
+
+The local certificate chain is an ordered array of individual PEM strings, with the leaf certificate followed by any intermediate certificates. The root certificate is normally omitted. Use `Certificates.parse(certificate_bundle)` to split a concatenated bundle while preserving that order.
+
+Set `system_certificates: true` to include system-provided trusted certificates. System and custom certificates can be combined in the same trust store.
+
+The SSL endpoint converts the trust store into an OpenSSL certificate store and the complete configuration into an OpenSSL context. Other endpoint implementations can consume the same trust, identity, and verification configuration using their native TLS implementation.
+
+The OpenSSL conversion is also available directly using `IO::Endpoint::TLS::OpenSSL.build_certificate_store(trust_store)`.
+
+For a server which requires clients to provide a trusted certificate, set `verification: :required`. Use `:peer` to verify a certificate when the peer provides one, and `:none` to explicitly disable peer verification. When a trust store is supplied and no policy is specified, peer verification is enabled by default. On client connections with a hostname, peer verification also checks that the certificate identifies that hostname.
