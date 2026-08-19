@@ -49,6 +49,18 @@ describe IO::Endpoint::TLS::OpenSSL do
 			expect(context.key.public_to_der).to be == key.public_to_der
 		end
 		
+		it "clears an existing extra certificate chain" do
+			context.extra_chain_cert = [certificate_authority_certificate]
+			configuration = IO::Endpoint::TLS::Configuration.new(
+				certificate_chain: [certificate.to_pem],
+				private_key: key.to_pem,
+			)
+			
+			subject.apply(context, configuration)
+			
+			expect(context.extra_chain_cert).to be == []
+		end
+		
 		it "preserves the verification mode when no policy is specified" do
 			context.verify_mode = ::OpenSSL::SSL::VERIFY_PEER
 			configuration = IO::Endpoint::TLS::Configuration.new

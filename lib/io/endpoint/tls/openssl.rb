@@ -20,9 +20,7 @@ module IO::Endpoint
 					store.set_default_paths if trust_store.system_certificates?
 					
 					trust_store.certificates.each do |certificate_pem|
-						::OpenSSL::X509::Certificate.load(certificate_pem).each do |certificate|
-							store.add_cert(certificate)
-						end
+						store.add_cert(::OpenSSL::X509::Certificate.new(certificate_pem))
 					end
 				end
 			end
@@ -43,7 +41,7 @@ module IO::Endpoint
 					end
 					
 					context.cert = certificates.shift
-					context.extra_chain_cert = certificates unless certificates.empty?
+					context.extra_chain_cert = certificates
 					context.key = ::OpenSSL::PKey.read(configuration.private_key)
 				end
 				
