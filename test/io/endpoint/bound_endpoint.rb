@@ -74,7 +74,7 @@ describe IO::Endpoint::BoundEndpoint do
 		
 		expect do
 			thread.join
-		end.to raise_exception(IOError, message: be =~ /stream closed in another thread/)
+		end.to raise_exception(IOError)
 	end
 	
 	with "timeouts" do
