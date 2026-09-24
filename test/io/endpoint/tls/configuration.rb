@@ -4,6 +4,18 @@
 # Copyright, 2026, by Samuel Williams.
 
 require "io/endpoint/tls/configuration"
+require "sus/shared"
+
+DifferentTLSConfiguration = Sus::Shared("a different TLS configuration") do |name, options|
+	it "keeps cache entries separate with different #{name}" do
+		first = configuration.freeze
+		second = configuration(**options).freeze
+		
+		expect(first).not.to be == second
+		expect(second).not.to be(:eql?, first)
+		expect({first => :client}[second]).to be_nil
+	end
+end
 
 describe IO::Endpoint::TLS::Configuration do
 	let(:certificate) {"trusted certificate"}
@@ -43,28 +55,15 @@ describe IO::Endpoint::TLS::Configuration do
 			expect(configuration(verification: nil)).to be == configuration(verification: :peer)
 		end
 		
-		{
-			"trust store presence" => {trust_store: nil},
-			"trust roots" => {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["other certificate"])},
-			"system certificate policy" => {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["trusted certificate"], system_certificates: true)},
-			"certificate chain" => {certificate_chain: ["other certificate"]},
-			"certificate order" => {certificate_chain: ["intermediate certificate", "leaf certificate"]},
-			"private key" => {private_key: "other private key"},
-			"disabled verification" => {verification: :none},
-			"required verification" => {verification: :required},
-			"local identity presence" => {certificate_chain: nil, private_key: nil},
-		}.each do |name, options|
-			with "different #{name}", unique: name, options: options do
-				it "keeps cache entries separate" do
-					first = configuration.freeze
-					second = configuration(**options).freeze
-					
-					expect(first).not.to be == second
-					expect(second).not.to be(:eql?, first)
-					expect({first => :client}[second]).to be_nil
-				end
-			end
-		end
+		it_behaves_like DifferentTLSConfiguration, "trust store presence", {trust_store: nil}
+		it_behaves_like DifferentTLSConfiguration, "trust roots", {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["other certificate"])}
+		it_behaves_like DifferentTLSConfiguration, "system certificate policy", {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["trusted certificate"], system_certificates: true)}
+		it_behaves_like DifferentTLSConfiguration, "certificate chain", {certificate_chain: ["other certificate"]}
+		it_behaves_like DifferentTLSConfiguration, "certificate order", {certificate_chain: ["intermediate certificate", "leaf certificate"]}
+		it_behaves_like DifferentTLSConfiguration, "private key", {private_key: "other private key"}
+		it_behaves_like DifferentTLSConfiguration, "disabled verification", {verification: :none}
+		it_behaves_like DifferentTLSConfiguration, "required verification", {verification: :required}
+		it_behaves_like DifferentTLSConfiguration, "local identity presence", {certificate_chain: nil, private_key: nil}
 		
 		it "does not compare equal to other types or subclasses" do
 			value = subject.new
