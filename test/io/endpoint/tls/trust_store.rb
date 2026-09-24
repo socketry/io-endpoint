@@ -10,6 +10,68 @@ describe IO::Endpoint::TLS::TrustStore do
 	let(:certificate) {"trusted certificate"}
 	let(:certificates) {[certificate]}
 	
+	with "value equality" do
+		it "uses independently constructed equivalent trust stores as the same hash key" do
+			first = subject.new(certificates: [certificate.dup]).freeze
+			second = subject.new(certificates: [certificate.dup]).freeze
+			
+			expect(first).to be == second
+			expect(first).to be(:eql?, second)
+			expect(first.hash).to be == second.hash
+			expect(first).not.to be_equal(second)
+			expect({first => :store}[second]).to be == :store
+		end
+		
+		it "distinguishes certificate contents, order, and system certificate policy" do
+			first = subject.new(certificates: ["first", "second"]).freeze
+			others = [
+				subject.new(certificates: ["other"]),
+				subject.new(certificates: ["second", "first"]),
+				subject.new(certificates: ["first", "second"], system_certificates: true),
+			]
+			
+			others.each do |other|
+				expect(first).not.to be == other
+				expect(other).not.to be(:eql?, first)
+				expect({first => :store}[other]).to be_nil
+			end
+		end
+		
+		it "compares system-only trust stores" do
+			first = subject.new(system_certificates: true).freeze
+			second = subject.new(system_certificates: true).freeze
+			
+			expect({first => :store}[second]).to be == :store
+		end
+		
+		it "does not compare equal to other types or subclasses" do
+			value = subject.new(certificates: certificates)
+			subclass = Class.new(subject).new(certificates: certificates)
+			
+			expect(value).not.to be == nil
+			expect(value).not.to be == Object.new
+			expect(value).not.to be == subclass
+			expect(subclass).not.to be == value
+		end
+		
+		it "keeps a frozen snapshot usable after the original certificates change" do
+			input = [certificate.dup]
+			original = subject.new(certificates: input)
+			snapshot = original.dup.freeze
+			stores = {snapshot => :store}
+			
+			input.first.replace("other root")
+			input.clear
+			
+			expect(original).not.to be(:frozen?)
+			expect(snapshot.certificates).to be == [certificate]
+			expect(stores[subject.new(certificates: certificates)]).to be == :store
+			expect{snapshot.certificates.clear}.to raise_exception(FrozenError)
+			expect{snapshot.certificates.first.clear}.to raise_exception(FrozenError)
+			expect(snapshot.freeze).to be_equal(snapshot)
+		end
+	end
+	
 	with "custom certificates" do
 		let(:trust_store) {subject.new(certificates: certificates)}
 		

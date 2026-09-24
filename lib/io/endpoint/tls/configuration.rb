@@ -59,6 +59,37 @@ module IO::Endpoint
 			# @attribute [Symbol | Nil] The peer verification policy.
 			attr :verification
 			
+			# Compare configurations by their certificate material and verification policy.
+			# @parameter other [Object] The object to compare.
+			# @returns [Boolean] Whether both configurations have the same class and values.
+			def ==(other)
+				return other.instance_of?(self.class) &&
+					@trust_store.eql?(other.trust_store) &&
+					@certificate_chain.eql?(other.certificate_chain) &&
+					@private_key.eql?(other.private_key) &&
+					@verification.eql?(other.verification)
+			end
+			
+			alias eql? ==
+			
+			# Compute a hash from the configuration values. Freeze the configuration before using it as a hash key.
+			# @returns [Integer] The hash of the configuration.
+			def hash
+				return [self.class, @trust_store, @certificate_chain, @private_key, @verification].hash
+			end
+			
+			# Freeze the configuration and independent copies of its certificate material, without freezing caller-owned values.
+			# @returns [Configuration] This immutable configuration. Use `dup.freeze` to preserve the original configuration too.
+			def freeze
+				return self if frozen?
+				
+				@trust_store = @trust_store&.dup&.freeze
+				@certificate_chain = @certificate_chain&.map{|certificate| certificate.dup.freeze}&.freeze
+				@private_key = @private_key&.dup&.freeze
+				
+				super
+			end
+			
 			# Whether peer certificates should be verified.
 			# @returns [Boolean] Whether peer verification is enabled.
 			def verify_peer?
