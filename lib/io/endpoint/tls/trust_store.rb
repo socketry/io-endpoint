@@ -55,6 +55,33 @@ module IO::Endpoint
 				@system_certificates
 			end
 			
+			# Compare trust stores by their ordered certificates and system certificate policy.
+			# @parameter other [Object] The object to compare.
+			# @returns [Boolean] Whether both trust stores have the same class and values.
+			def ==(other)
+				return other.instance_of?(self.class) &&
+					@certificates.eql?(other.certificates) &&
+					@system_certificates.eql?(other.system_certificates?)
+			end
+			
+			alias eql? ==
+			
+			# Compute a hash from the trust store values. Freeze the trust store before using it as a hash key.
+			# @returns [Integer] The hash of the trust store.
+			def hash
+				return [self.class, @certificates, @system_certificates].hash
+			end
+			
+			# Freeze the trust store and independent copies of its certificates, without freezing caller-owned values.
+			# @returns [TrustStore] This immutable trust store. Use `dup.freeze` to preserve the original trust store too.
+			def freeze
+				return self if frozen?
+				
+				@certificates = @certificates.map{|certificate| certificate.dup.freeze}.freeze
+				
+				super
+			end
+			
 			# Get a representation of the trust store without exposing certificate material.
 			# @returns [String] A redacted representation of the trust store.
 			def inspect

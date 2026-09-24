@@ -4,6 +4,18 @@
 # Copyright, 2026, by Samuel Williams.
 
 require "io/endpoint/tls/configuration"
+require "sus/shared"
+
+DifferentTLSConfiguration = Sus::Shared("a different TLS configuration") do |name, options|
+	it "keeps cache entries separate with different #{name}" do
+		first = configuration.freeze
+		second = configuration(**options).freeze
+		
+		expect(first).not.to be == second
+		expect(second).not.to be(:eql?, first)
+		expect({first => :client}[second]).to be_nil
+	end
+end
 
 describe IO::Endpoint::TLS::Configuration do
 	let(:certificate) {"trusted certificate"}
@@ -11,6 +23,87 @@ describe IO::Endpoint::TLS::Configuration do
 	let(:trust_store) {IO::Endpoint::TLS::TrustStore.new(certificates: certificates)}
 	let(:certificate_chain) {["certificate chain"]}
 	let(:private_key) {"private key"}
+	
+	with "value equality" do
+		def configuration(**options)
+			subject.new(
+				trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["trusted certificate".dup]),
+				certificate_chain: ["leaf certificate".dup, "intermediate certificate".dup],
+				private_key: "private key".dup,
+				verification: :peer,
+				**options
+			)
+		end
+		
+		it "uses independently constructed equivalent configurations as the same hash key" do
+			first = configuration.freeze
+			second = configuration.freeze
+			clients = {["https://example.com", first] => :client}
+			
+			expect(first).to be == second
+			expect(first).to be(:eql?, second)
+			expect(first.hash).to be == second.hash
+			expect(first).not.to be_equal(second)
+			expect(clients[["https://example.com", second]]).to be == :client
+		end
+		
+		it "compares empty configurations" do
+			expect({subject.new.freeze => :client}[subject.new]).to be == :client
+		end
+		
+		it "compares the effective default verification policy" do
+			expect(configuration(verification: nil)).to be == configuration(verification: :peer)
+		end
+		
+		it_behaves_like DifferentTLSConfiguration, "trust store presence", {trust_store: nil}
+		it_behaves_like DifferentTLSConfiguration, "trust roots", {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["other certificate"])}
+		it_behaves_like DifferentTLSConfiguration, "system certificate policy", {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["trusted certificate"], system_certificates: true)}
+		it_behaves_like DifferentTLSConfiguration, "certificate chain", {certificate_chain: ["other certificate"]}
+		it_behaves_like DifferentTLSConfiguration, "certificate order", {certificate_chain: ["intermediate certificate", "leaf certificate"]}
+		it_behaves_like DifferentTLSConfiguration, "private key", {private_key: "other private key"}
+		it_behaves_like DifferentTLSConfiguration, "disabled verification", {verification: :none}
+		it_behaves_like DifferentTLSConfiguration, "required verification", {verification: :required}
+		it_behaves_like DifferentTLSConfiguration, "local identity presence", {certificate_chain: nil, private_key: nil}
+		
+		it "does not compare equal to other types or subclasses" do
+			value = subject.new
+			subclass = Class.new(subject).new
+			
+			expect(value).not.to be == nil
+			expect(value).not.to be == Object.new
+			expect(value).not.to be == subclass
+			expect(subclass).not.to be == value
+		end
+		
+		it "keeps a frozen snapshot usable after the original data changes" do
+			original = configuration
+			snapshot = original.dup.freeze
+			clients = {snapshot => :client}
+			
+			original.trust_store.certificates.first.replace("other root")
+			original.trust_store.certificates.clear
+			original.certificate_chain.first.replace("other leaf")
+			original.certificate_chain.clear
+			original.private_key.replace("other key")
+			
+			expect(original).not.to be(:frozen?)
+			expect(original.trust_store).not.to be(:frozen?)
+			expect(snapshot).to be == configuration
+			expect(clients[configuration]).to be == :client
+			expect(clients[original]).to be_nil
+		end
+		
+		it "prevents mutation through a frozen configuration" do
+			snapshot = configuration.freeze
+			
+			expect{snapshot.trust_store.certificates.clear}.to raise_exception(FrozenError)
+			expect{snapshot.trust_store.certificates.first.clear}.to raise_exception(FrozenError)
+			expect{snapshot.certificate_chain.clear}.to raise_exception(FrozenError)
+			expect{snapshot.certificate_chain.first.clear}.to raise_exception(FrozenError)
+			expect{snapshot.private_key.clear}.to raise_exception(FrozenError)
+			expect(snapshot.freeze).to be_equal(snapshot)
+		end
+	end
 	
 	with "certificate material" do
 		let(:configuration) do
