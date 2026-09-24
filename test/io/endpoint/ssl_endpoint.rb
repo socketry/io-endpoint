@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2023-2025, by Samuel Williams.
+# Copyright, 2023-2026, by Samuel Williams.
 
 require "io/endpoint/ssl_endpoint"
 require "io/endpoint/shared_endpoint"

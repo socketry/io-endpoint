@@ -37,6 +37,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
+    
+    # JRuby requires a more recent JDK than the runner provides by default:
+    - uses: actions/setup-java@v4
+      if: startsWith(matrix.ruby, 'jruby')
+      with:
+        distribution: temurin
+        java-version: "21"
+    
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{matrix.ruby}}
