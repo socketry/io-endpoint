@@ -43,18 +43,18 @@ describe IO::Endpoint::TLS::Configuration do
 			expect(configuration(verification: nil)).to be == configuration(verification: :peer)
 		end
 		
-		[
-			{trust_store: nil},
-			{trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["other certificate"])},
-			{trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["trusted certificate"], system_certificates: true)},
-			{certificate_chain: ["other certificate"]},
-			{certificate_chain: ["intermediate certificate", "leaf certificate"]},
-			{private_key: "other private key"},
-			{verification: :none},
-			{verification: :required},
-			{certificate_chain: nil, private_key: nil},
-		].each do |options|
-			with "different #{options.keys.join(', ')}", options: options do
+		{
+			"trust store presence" => {trust_store: nil},
+			"trust roots" => {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["other certificate"])},
+			"system certificate policy" => {trust_store: IO::Endpoint::TLS::TrustStore.new(certificates: ["trusted certificate"], system_certificates: true)},
+			"certificate chain" => {certificate_chain: ["other certificate"]},
+			"certificate order" => {certificate_chain: ["intermediate certificate", "leaf certificate"]},
+			"private key" => {private_key: "other private key"},
+			"disabled verification" => {verification: :none},
+			"required verification" => {verification: :required},
+			"local identity presence" => {certificate_chain: nil, private_key: nil},
+		}.each do |name, options|
+			with "different #{name}", unique: name, options: options do
 				it "keeps cache entries separate" do
 					first = configuration.freeze
 					second = configuration(**options).freeze
