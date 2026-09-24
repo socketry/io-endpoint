@@ -16,6 +16,10 @@ Please see the [project documentation](https://socketry.github.io/io-endpoint) f
 
 Please see the [project releases](https://socketry.github.io/io-endpointreleases/index) for all releases.
 
+### v0.19.0
+
+  - Compare TLS configurations and trust stores by value, allowing equivalent configurations to share cache entries. Freezing them creates immutable certificate data without freezing caller-owned values.
+
 ### v0.18.0
 
   - The `openssl` gem 3.3.0 or newer is now required.
@@ -55,10 +59,6 @@ Please see the [project releases](https://socketry.github.io/io-endpointreleases
 ### v0.14.0
 
   - Uniform `#to_s` and `#inspect` implementations across all endpoints.
-
-### v0.13.1
-
-  - Fixed state leak between iterations of the accept loop.
 
 ## See Also
 

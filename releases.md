@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.19.0
 
   - Compare TLS configurations and trust stores by value, allowing equivalent configurations to share cache entries. Freezing them creates immutable certificate data without freezing caller-owned values.
 
